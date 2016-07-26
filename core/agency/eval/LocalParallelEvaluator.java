@@ -4,11 +4,12 @@ import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class LocalEvaluator implements Evaluator {
+public class LocalParallelEvaluator implements Evaluator {
 
 	@Override
 	public Stream<EvaluationGroup> evaluate(Stream<EvaluationGroup> evaluationGroups) {
 		return evaluationGroups
+				.parallel()
 				.map(eg -> {
 			eg.run();
 			return eg;

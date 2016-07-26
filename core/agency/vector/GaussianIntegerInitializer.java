@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class GaussianIntegerInitializer implements ValueInitializer<Integer> {
-	static {
-		Config.registerClassXMLTag(GaussianIntegerInitializer.class);
-	}
 	
 	double center;
 	double sd;

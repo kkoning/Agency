@@ -1,6 +1,7 @@
 package agency.models.simple;
 
 import java.util.stream.IntStream;
+import org.apache.commons.lang3.RandomUtils;
 import agency.Agent;
 import agency.AgentModel;
 import agency.Fitness;
@@ -10,13 +11,15 @@ import agency.vector.VectorIndividual;
 
 public class MaximumValue implements AgentModel {
 
-  @Override
-  public void run() {
-    // NO SIMULATION NECESSARY
+  public class SummaryData {
+    int randomInt;
+    String label;
   }
 
   @Override
-  public Fitness getFitness(Agent<?> agent) {
+  public Fitness getFitness(Agent<? extends Individual> agent) {
+    
+    // The agent is assumed to have a VectorInvididual<Integer>
     VectorIndividual<Integer> ind = (VectorIndividual<Integer>) agent
         .getIndividual();
     int genomeSize = ind.getGenomeLength();
@@ -30,7 +33,36 @@ public class MaximumValue implements AgentModel {
 
   @Override
   public void addAgent(Agent<? extends Individual> agent) {
-    // Don't need to add them, can evaulate directly.
+    // Don't need to add them to a simulation, they can be evaluated directly
+    // based on the content of their genome.
+  }
+
+  @Override
+  public boolean step() {
+    // Stepping this model isn't needed; individuals can be evaluated directly.
+    return false;  // don't stop early
+  }
+
+  @Override
+  public int getMaxSteps() {
+    return 3;
+  }
+  
+
+  @Override
+  public Object getSummaryData() {
+    SummaryData sd = new SummaryData();
+    sd.label = "foo";
+    sd.randomInt = RandomUtils.nextInt(0, 100_000);
+    return sd;
+  }
+
+  @Override
+  public Object getStepData() {
+    SummaryData sd = new SummaryData();
+    sd.label = "bar";
+    sd.randomInt = RandomUtils.nextInt(0, 100_000);
+    return sd;
   }
 
 }

@@ -5,20 +5,20 @@ import java.util.List;
 import org.apache.commons.lang3.Range;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import agency.Config;
 import agency.IndividualFactory;
+import agency.XMLConfigurable;
+import agency.reproduce.BreedingPipeline;
 import agency.util.RangeMap;
 import agency.util.RangeMapEntry;
 
 public class VectorIndividualFactory<T>
     implements IndividualFactory<VectorIndividual<T>> {
-  static {
-    Config.registerClassXMLTag(VectorIndividualFactory.class);
-  }
 
   int                                    genomeSize;
   RangeMap<Integer, ValueInitializer<T>> initializers = new RangeMap<>();
-  RangeMap<Integer, ValueLimiter<T>>     limiters     = new RangeMap<>();
 
   public VectorIndividualFactory() {
     super();
@@ -33,31 +33,26 @@ public class VectorIndividualFactory<T>
   public void readXMLConfig(Element e) {
     genomeSize = Integer.parseInt(e.getAttribute("genomeSize"));
 
-    // Initializers
-    List<Element> initializerElements = Config.getChildElementsWithTag(e,
-        "Initializer");
-    if (initializerElements.isEmpty())
-      throw new RuntimeException("Must have at least one initalizer");
-    for (Element initE : initializerElements) {
-      Integer start = Integer.parseInt(initE.getAttribute("start"));
-      Integer end = Integer.parseInt(initE.getAttribute("end"));
-      ValueInitializer<T> vi = (ValueInitializer<T>) Config
-          .initializeXMLConfigurable(initE);
-      addInitializer(start, end, vi);
+    NodeList nl = e.getChildNodes();
+    for (int i = 0; i < nl.getLength(); i++) {
+      Node node = nl.item(i);
+      if (node instanceof Element) {
+        Element child = (Element) node;
+        XMLConfigurable xc = Config.initializeXMLConfigurable(child);
+
+        if (xc instanceof ValueInitializer) {
+          Integer start = Integer.parseInt(child.getAttribute("start"));
+          Integer end = Integer.parseInt(child.getAttribute("end"));
+          addInitializer(start, end, (ValueInitializer) xc);
+        } else {
+          throw new UnsupportedOperationException("Unrecognized child element in VectorIndividualFactory");
+        }
+      }
     }
 
-    // Limiters
-    List<Element> limiterElements = Config.getChildElementsWithTag(e,
-        "Limiter");
-    if (limiterElements.isEmpty())
-      throw new RuntimeException("Must have at least one initalizer");
-    for (Element limitE : limiterElements) {
-      Integer start = Integer.parseInt(limitE.getAttribute("start"));
-      Integer end = Integer.parseInt(limitE.getAttribute("end"));
-      ValueLimiter<T> vl = (ValueLimiter<T>) Config
-          .initializeXMLConfigurable(limitE);
-      addLimiter(start, end, vl);
-    }
+    if (initializers.size() < 1)
+      throw new UnsupportedOperationException(
+          "VectorMutationPipeline must have at least one mutator");
   }
 
   @Override
@@ -72,24 +67,12 @@ public class VectorIndividualFactory<T>
           .next();
       Range<Integer> r = rme.getRange();
       ValueInitializer<?> vi = rme.getObject();
-      Element childE = Config.createNamedElement(d, vi, "Initializer");
+      Element childE = Config.createUnnamedElement(d, vi);
       childE.setAttribute("start", r.getMinimum().toString());
       childE.setAttribute("end", r.getMaximum().toString());
       e.appendChild(childE);
     }
 
-    // Limiters
-    Iterator<RangeMapEntry<Integer, ValueLimiter<T>>> limitersIterator = limiters
-        .entries().iterator();
-    while (limitersIterator.hasNext()) {
-      RangeMapEntry<Integer, ValueLimiter<T>> rme = limitersIterator.next();
-      Range<Integer> r = rme.getRange();
-      ValueLimiter<?> vl = rme.getObject();
-      Element childE = Config.createNamedElement(d, vl, "Limiter");
-      childE.setAttribute("start", r.getMinimum().toString());
-      childE.setAttribute("end", r.getMaximum().toString());
-      e.appendChild(childE);
-    }
   }
 
   public void addInitializer(Integer start, Integer end,
@@ -97,23 +80,6 @@ public class VectorIndividualFactory<T>
     Range<Integer> r = Range.between(start, end);
     addInitializer(r, vi);
 
-  }
-
-  public void addLimiter(Range<Integer> r, ValueLimiter<T> vl) {
-    // Check for illegal values
-    if (r.getMinimum() < 0)
-      throw new IllegalArgumentException(
-          "Cannot add a range limiter that covers a negative index");
-    if (r.getMaximum() >= genomeSize)
-      throw new IllegalArgumentException(
-          "Cannot add a range limiter that extends past the genome size");
-
-    limiters.put(r, vl);
-  }
-
-  public void addLimiter(Integer start, Integer end, ValueLimiter<T> vl) {
-    Range<Integer> r = Range.between(start, end);
-    addLimiter(r, vl);
   }
 
   public void addInitializer(Range<Integer> r, ValueInitializer<T> vi) {
@@ -144,26 +110,9 @@ public class VectorIndividualFactory<T>
       }
     }
 
-    // Limit
-    limit(ind);
-
     ind.setFitness(null);
     return ind;
   }
 
-  @Override
-  public void limit(VectorIndividual<T> ind) {
-    // Initialize
-    Iterator<RangeMapEntry<Integer, ValueLimiter<T>>> initializersIterator = limiters
-        .entries().iterator();
-    while (initializersIterator.hasNext()) {
-      RangeMapEntry<Integer, ValueLimiter<T>> rme = initializersIterator.next();
-      Range<Integer> r = rme.getRange();
-      ValueLimiter<T> vl = rme.getObject();
-      for (int i = r.getMinimum(); i <= r.getMaximum(); i++) {
-        ind.genome[i] = vl.limit(ind.genome[i]);
-      }
-    }
-  }
 
 }

@@ -12,9 +12,6 @@ import agency.Population;
 import agency.XMLConfigurable;
 
 public class RandomIndividualSelector implements BreedingPipeline, XMLConfigurable {
-  static {
-    Config.registerClassXMLTag(RandomIndividualSelector.class);
-  }
 
 	Population pop;
 	

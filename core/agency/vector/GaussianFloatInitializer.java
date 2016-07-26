@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class GaussianFloatInitializer implements ValueInitializer<Float> {
-	static {
-		Config.registerClassXMLTag(GaussianFloatInitializer.class);
-	}
 	
 	float center;
 	float sd;

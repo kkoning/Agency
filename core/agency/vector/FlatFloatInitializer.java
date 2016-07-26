@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class FlatFloatInitializer implements ValueInitializer<Float> {
-	static {
-		Config.registerClassXMLTag(FlatFloatInitializer.class);
-	}
 	
 	float floor;
 	float ceiling;

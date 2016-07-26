@@ -2,6 +2,7 @@ package agency;
 
 import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.StringWriter;
 import java.util.OptionalDouble;
 import javax.xml.transform.OutputKeys;
@@ -9,6 +10,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +22,6 @@ import agency.reproduce.ElitismSelector;
 import agency.reproduce.FitnessProportionalSelector;
 import agency.reproduce.RandomIndividualSelector;
 import agency.reproduce.TournamentSelector;
-import agency.reproduce.VectorMutationPipeline;
 import agency.reproduce.WeightedBreedingPipeline;
 import agency.vector.FlatIntegerInitializer;
 import agency.vector.GaussianIntegerMutator;
@@ -29,6 +30,7 @@ import agency.vector.ValueInitializer;
 import agency.vector.ValueLimiter;
 import agency.vector.VectorIndividual;
 import agency.vector.VectorIndividualFactory;
+import agency.vector.VectorMutationPipeline;
 import agency.vector.VectorRange;
 
 public class ConfigurationTest {
@@ -42,6 +44,23 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testReadFile() throws Exception {
+    System.out.println("------------- Start testReadFile");
+    String xml = FileUtils.readFileToString(new File("test/agency/BreedingPipelineTest.xml"), "UTF-8");
+    System.out.println("Read file successfully: contents are:");
+    System.out.println(xml);
+    System.out.println("--(End of file)");
+    
+    Element e = getRootElementFrom(xml);
+    System.out.println("Attempting to initialize as an XMLConfigurable");
+    XMLConfigurable xc = Config.initializeXMLConfigurable(e);
+    System.out.println("Success.  Now writing as an XMLConfigurable");
+    printConfig(xc);
+    
+
+  }
+  
+//  @Test
   public void testBasics() throws Exception {
     System.out.println("------------- Start testBasics");
 
@@ -86,7 +105,6 @@ public class ConfigurationTest {
     ValueInitializer<Integer> vii = new FlatIntegerInitializer(-100, 100);
     ValueLimiter<Integer> vll = new IntegerLimiter(-50, 50);
     vifi.addInitializer(0, 19, vii);
-    vifi.addLimiter(0, 19, vll);
 
     AgentFactory af = new NullAgentFactory();
 
@@ -120,7 +138,7 @@ public class ConfigurationTest {
 
     System.out.println("Population before evolution");
 
-    env.evaluationManager.evaluate(env);
+    env.evolve();
 
     p2.allIndividuals().forEach(System.out::println);
 
@@ -148,7 +166,7 @@ public class ConfigurationTest {
 
   }
 
-  @Test
+//  @Test
   public void testVectorRange() throws Exception {
     VectorRange vr = new VectorRange();
     vr.setStartGenomePosition(0);
@@ -166,13 +184,13 @@ public class ConfigurationTest {
 
   }
 
-  @Test
+//  @Test
   public void testCreateVectorIndividual() throws Exception {
     VectorIndividual<Integer> vi = new VectorIndividual<>(5);
     System.out.println(vi);
   }
 
-  @Test
+//  @Test
   public void testVectorIndividualFactory() throws Exception {
     System.out.println("------------- Start testVectorIndividualFactory");
 
@@ -195,21 +213,18 @@ public class ConfigurationTest {
     }
 
     try {
-      vifi.addLimiter(-1, 4, vll);
       fail("Out of range exception should have been thrown");
     } catch (Exception e) {
       // should throw exception
     }
 
     try {
-      vifi.addLimiter(0, 5, vll);
       fail("Out of range exception should have been thrown");
     } catch (Exception e) {
       // should throw exception
     }
 
     vifi.addInitializer(0, 4, vii);
-    vifi.addLimiter(0, 4, vll);
 
     Document doc = Config.newDocument();
     Element e = Config.createUnnamedElement(doc, vifi);

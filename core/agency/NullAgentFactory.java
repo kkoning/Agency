@@ -4,10 +4,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class NullAgentFactory implements AgentFactory {
-  static {
-    Config.registerClassXMLTag(NullAgentFactory.class);
-  }
-
   
 	@Override
 	public Agent<? extends Individual> createAgent(Individual ind) {

@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class FlatIntegerInitializer implements ValueInitializer<Integer> {
-	static {
-		Config.registerClassXMLTag(FlatIntegerInitializer.class);
-	}
 	
 	Integer floor;
 	Integer ceiling;

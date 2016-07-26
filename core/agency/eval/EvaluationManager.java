@@ -21,7 +21,7 @@ public class EvaluationManager implements Serializable {
 
 	// Do something more interesting later, for now just use an in-process
 	// evaluator
-	private Evaluator evaluator = new InProcessEvaluator();
+	private Evaluator evaluator = new LocalEvaluator();
 
 	// Do something more interesting later, for now just use a simple fitness
 	// aggregator

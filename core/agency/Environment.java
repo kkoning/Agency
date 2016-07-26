@@ -4,38 +4,45 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import agency.eval.EvaluationGroup;
 import agency.eval.EvaluationGroupFactory;
 import agency.eval.EvaluationManager;
 import agency.eval.Evaluator;
-import agency.reproduce.VectorMutationPipeline;
+import agency.reproduce.BreedingPipeline;
+import agency.vector.ValueLimiter;
+import agency.vector.ValueMutator;
+import agency.vector.VectorMutationPipeline;
 
 public class Environment implements XMLConfigurable, Serializable {
   private static final long serialVersionUID = 3057043882181403186L;
 
-  static {
-    Config.registerClassXMLTag(Environment.class);
-  }
+  int                       generation       = 0;
 
-  ArrayList<Population>       populations;
-  EvaluationGroupFactory      evaluationGroupFactory;
-  AgentModelFactory<?>        agentModelFactory;
-  ArrayList<Environment>      subEnvironments;
-  Environment                 superEnvironment;
-  int                         generation = 0;
-  transient Evaluator         evaluator;
-  transient EvaluationManager evaluationManager;
+  Environment               superEnvironment;
+  ArrayList<Population>     populations;
+  ArrayList<Environment>    subEnvironments;
+
+  EvaluationGroupFactory    evaluationGroupFactory;
+  AgentModelFactory<?>      agentModelFactory;
+
+  AgentModelReporter        agentModelReporter;
+
+  transient Evaluator       evaluator;
 
   public Environment() {
     this.populations = new ArrayList<>();
-    evaluationManager = new EvaluationManager();
   }
 
   public Environment(Environment parent) {
@@ -45,30 +52,56 @@ public class Environment implements XMLConfigurable, Serializable {
 
   @Override
   public void readXMLConfig(Element e) {
-    List<Element> popEs = Config.getChildElementsWithTag(e, "Population");
-    if (popEs.isEmpty())
-      throw new IllegalArgumentException(
-          "Environment must have at least one population");
-    for (Element popE : popEs) {
-      Population p = (Population) Config.initializeXMLConfigurable(popE);
-      populations.add(p);
+    // TODO: Read a random seed
+
+    // Things to read:
+    // - Populations (check)
+    // - EvaluationGroupFactory (check)
+    // - Evaluator (check)
+    // - AgentModelFactory
+
+    NodeList nl = e.getChildNodes();
+    for (int i = 0; i < nl.getLength(); i++) {
+      Node node = nl.item(i);
+      if (node instanceof Element) {
+        Element child = (Element) node;
+        XMLConfigurable xc = Config.initializeXMLConfigurable(child);
+
+        if (xc instanceof Population) {
+          populations.add((Population) xc);
+        } else if (xc instanceof EvaluationGroupFactory) {
+          if (evaluationGroupFactory != null)
+            throw new UnsupportedOperationException("Population can only have one EvaluationGroupFactory");
+          evaluationGroupFactory = (EvaluationGroupFactory) xc;
+        } else if (xc instanceof Evaluator) {
+          if (evaluator != null)
+            throw new UnsupportedOperationException("Population can only have one Evaluator");
+          evaluator = (Evaluator) xc;
+        } else if (xc instanceof AgentModelFactory) {
+          if (agentModelFactory != null)
+            throw new UnsupportedOperationException("Population can only have one AgentModelFactory");
+          agentModelFactory = (AgentModelFactory<?>) xc;
+        } else if (xc instanceof AgentModelReporter) {
+          if (agentModelReporter != null)
+            throw new UnsupportedOperationException("Population can only have one AgentModelFactory");
+          agentModelReporter = (AgentModelReporter) xc;
+        }
+        
+        
+      }
     }
 
-    Optional<Element> opEGFE = Config.getChildElementWithTag(e,
-        "EvaluationGroupFactory");
-    if (!opEGFE.isPresent())
-      throw new IllegalArgumentException(
-          "Environment must have an evaluation group factory");
-    evaluationGroupFactory = (EvaluationGroupFactory) Config
-        .initializeXMLConfigurable(opEGFE.get());
+    if (populations.size() < 1)
+      throw new UnsupportedOperationException("Environment must have at least one Population");
 
-    Optional<Element> opAMFE = Config.getChildElementWithTag(e,
-        "AgentModelFactory");
-    if (!opAMFE.isPresent())
-      throw new IllegalArgumentException(
-          "Environment must have an AgentModelFactory");
-    agentModelFactory = (AgentModelFactory<?>) Config
-        .initializeXMLConfigurable(opAMFE.get());
+    if (evaluationGroupFactory == null)
+      throw new UnsupportedOperationException("Environment must have an EvaluationGroupFactory");
+
+    if (evaluator == null)
+      throw new UnsupportedOperationException("Environment must have an Evaluator");
+
+    if (agentModelFactory == null)
+      throw new UnsupportedOperationException("Environment must have an AgentModelFactory");
 
   }
 
@@ -78,20 +111,48 @@ public class Environment implements XMLConfigurable, Serializable {
       Element popE = Config.createNamedElement(d, pop, "Population");
       e.appendChild(popE);
     }
-    Element egfE = Config.createNamedElement(d, evaluationGroupFactory,
-        "EvaluationGroupFactory");
-    Element amfE = Config.createNamedElement(d, agentModelFactory,
-        "AgentModelFactory");
+    Element egfE = Config.createUnnamedElement(d, evaluationGroupFactory);
+    Element amfE = Config.createUnnamedElement(d, agentModelFactory);
+    Element evE = Config.createUnnamedElement(d, evaluator);
     e.appendChild(egfE);
     e.appendChild(amfE);
+    e.appendChild(evE);
   }
 
   public void evolve() {
-    evaluationManager.evaluate(this);
+
+    Stream<EvaluationGroup> egs = evaluationGroupFactory.createEvaluationGroups(this);
+    Stream<EvaluationGroup> evaluatedGroups = evaluator.evaluate(egs);
+
+    // EvaluationGroups have now been run; do stuff with their data
+    evaluatedGroups.forEach(eg -> {
+
+      // Pull out all the individuals and their fitness samples
+      eg.getResults().forEach(fitMapEnt -> {
+        Individual i = fitMapEnt.getKey();
+        i.addFitnessSample(fitMapEnt.getValue());
+      });
+
+      // Collect data from the agent models
+      if (agentModelReporter != null) {  // Data from models is optional here...
+        agentModelReporter.perStepData(generation, eg);
+        agentModelReporter.summaryData(generation, eg);
+      }
+
+    });
+
+    // Aggregate fitnesses
+    for (Population pop : populations) {
+      pop.aggregateFitnesses(); // Parallelization inside here
+    }
+
     // TODO: Balance populations
+
+    // Reproduce populations
     for (Population pop : populations) {
       pop.reproduce();
     }
+
     generation++;
   }
 
@@ -99,8 +160,7 @@ public class Environment implements XMLConfigurable, Serializable {
     return evaluationGroupFactory;
   }
 
-  public void setEvaluationGroupFactory(
-      EvaluationGroupFactory evaluationGroupFactory) {
+  public void setEvaluationGroupFactory(EvaluationGroupFactory evaluationGroupFactory) {
     this.evaluationGroupFactory = evaluationGroupFactory;
   }
 
@@ -128,14 +188,12 @@ public class Environment implements XMLConfigurable, Serializable {
 
   Stream<Individual> getRandomIndividuals() {
     PopulationMap indexedPop = new PopulationMap();
-    Collection<Population> pops = getAllPopulations()
-        .collect(Collectors.toCollection(ArrayList::new));
+    Collection<Population> pops = getAllPopulations().collect(Collectors.toCollection(ArrayList::new));
     indexedPop.addPopulations(pops);
 
     Random r = ThreadLocalRandom.current();
 
-    Stream<Individual> toReturn = Stream
-        .generate(() -> (Integer) r.nextInt(indexedPop.totalIndividuals()))
+    Stream<Individual> toReturn = Stream.generate(() -> (Integer) r.nextInt(indexedPop.totalIndividuals()))
         .map(i -> indexedPop.getIndividual(i));
 
     return toReturn;

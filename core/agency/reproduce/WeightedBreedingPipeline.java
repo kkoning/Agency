@@ -19,9 +19,6 @@ import agency.XMLConfigurable;
 import agency.XMLConfigurable;
 
 public class WeightedBreedingPipeline implements BreedingPipeline, XMLConfigurable {
-	static {
-		Config.registerClassXMLTag(WeightedBreedingPipeline.class);
-	}
 	
 	Map<BreedingPipeline, Float> componentStreams;
 
@@ -61,7 +58,7 @@ public class WeightedBreedingPipeline implements BreedingPipeline, XMLConfigurab
 	public void writeXMLConfig(Document doc, Element e) {
 		for (Map.Entry<BreedingPipeline, Float> entry : componentStreams.entrySet()) {
 			// Element representing the component stream
-			Element child = Config.createNamedElement(doc, entry.getKey(), "Source");
+			Element child = Config.createUnnamedElement(doc, entry.getKey());
 			// but add a weight attribute
 			child.setAttribute("weight", Float.toString(entry.getValue()));
 			e.appendChild(child);

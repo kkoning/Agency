@@ -9,21 +9,22 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import agency.eval.FitnessAggregator;
 import agency.reproduce.BreedingPipeline;
 import agency.util.RandomStream;
+import agency.vector.ValueMutator;
 
 public class Population implements Serializable, XMLConfigurable {
-  private static final long serialVersionUID = 4940155716065322170L;
+  private static final long     serialVersionUID = 4940155716065322170L;
 
-  static {
-    Config.registerClassXMLTag(Population.class);
-  }
-
-  int                           generation = 0;
+  int                           generation       = 0;
   Integer                       initialSize;
   List<Individual>              individuals;
   IndividualFactory<Individual> indFactory;
   AgentFactory                  agentFactory;
+  FitnessAggregator             fitnessAggregator;
   BreedingPipeline              breedingPipeline;
 
   public Population() {
@@ -42,38 +43,81 @@ public class Population implements Serializable, XMLConfigurable {
 
   @Override
   public void readXMLConfig(Element e) {
+    
+    
+    NodeList nl = e.getChildNodes();
+    for (int i = 0; i < nl.getLength(); i++) {
+      Node node = nl.item(i);
+      if (node instanceof Element) {
+        Element child = (Element) node;
+        XMLConfigurable xc = Config.initializeXMLConfigurable(child);
 
+        if (xc instanceof IndividualFactory) {
+          if (indFactory != null) // Can only have one IndividualFactory
+            throw new UnsupportedOperationException(
+                "Population cannot have more than one IndividualFactory");
+          indFactory = (IndividualFactory<Individual>) xc;
+        } else if (xc instanceof AgentFactory) {
+          if (agentFactory != null) // Can only have one AgentFactory
+            throw new UnsupportedOperationException(
+                "Population cannot have more than one AgentFactory");
+          agentFactory = (AgentFactory) xc;
+        } else if (xc instanceof BreedingPipeline) {
+          if (breedingPipeline != null) // Can only have one IndividualFactory
+            throw new UnsupportedOperationException(
+                "Population cannot have more than one BreedingPipeline");
+          breedingPipeline = (BreedingPipeline) xc;
+        } else if (xc instanceof FitnessAggregator) {
+          if (fitnessAggregator != null) // Can only have one FitnessAggregator
+            throw new UnsupportedOperationException(
+                "Population cannot have more than one FitnessAggregator");
+          fitnessAggregator = (FitnessAggregator) xc;
+        } else {
+          throw new UnsupportedOperationException("Unrecognized element in Population");
+        }
+        
+      }
+    }
+
+    if (indFactory == null)
+      throw new UnsupportedOperationException(
+          "Population must have an IndividualFactory to initialize the population");
+
+    if (agentFactory == null)
+      throw new UnsupportedOperationException(
+          "Population must have an AgentFactory to convert individuals to Agents");
+
+    if (breedingPipeline == null)
+      throw new UnsupportedOperationException(
+          "Population must have an BreedingPipeline to evolve the population");
+
+    if (fitnessAggregator == null)
+      throw new UnsupportedOperationException(
+          "Population must have an FitnessAggregator to evolve the population");
+    
     initialSize = Integer.parseInt(e.getAttribute("initialSize"));
-    Element indFactoryE = Config.getChildElementWithTag(e, "IndividualFactory")
-        .get();
-    Element agentFactoryE = Config.getChildElementWithTag(e, "AgentFactory")
-        .get();
-    Element breedPipeE = Config.getChildElementWithTag(e, "BreedingPipeline")
-        .get();
-    indFactory = (IndividualFactory<Individual>) Config
-        .initializeXMLConfigurable(indFactoryE);
-    agentFactory = (AgentFactory) Config
-        .initializeXMLConfigurable(agentFactoryE);
-    breedingPipeline = (BreedingPipeline) Config
-        .initializeXMLConfigurable(breedPipeE);
-
     initializePopulation(initialSize);
   }
 
   @Override
   public void writeXMLConfig(Document d, Element e) {
     e.setAttribute("initialSize", initialSize.toString());
-    Element indFactoryE = Config.createNamedElement(d, indFactory,
-        "IndividualFactory");
-    Element agentFactoryE = Config.createNamedElement(d, agentFactory,
-        "AgentFactory");
-    Element breedPipeE = Config.createNamedElement(d, breedingPipeline,
-        "BreedingPipeline");
-    e.appendChild(agentFactoryE);
+    Element indFactoryE = Config.createUnnamedElement(d, indFactory);
+    Element agentFactoryE = Config.createUnnamedElement(d, agentFactory);
+    Element fitAggE = Config.createUnnamedElement(d, fitnessAggregator);
+    Element breedPipeE = Config.createUnnamedElement(d, breedingPipeline);
     e.appendChild(indFactoryE);
+    e.appendChild(fitAggE);
+    e.appendChild(agentFactoryE);
     e.appendChild(breedPipeE);
   }
 
+  public void aggregateFitnesses() {
+    individuals.stream().parallel().forEach(ind -> {
+      ind.aggregateFitness(fitnessAggregator);
+    });
+  }
+  
   public void reproduce() {
     reproduce(this.size());
   }
@@ -83,7 +127,6 @@ public class Population implements Serializable, XMLConfigurable {
     List<Individual> newPopulation = IntStream.range(0, populationSize)
         .mapToObj((i) -> {
           Individual ind = breedingPipeline.generate();
-          indFactory.limit(ind);
           return ind;
         }).collect(Collectors.toList());
 
@@ -94,12 +137,6 @@ public class Population implements Serializable, XMLConfigurable {
   Agent<? extends Individual> createAgent(Individual ind) {
     return agentFactory.createAgent(ind);
   }
-
-  // public Stream<Individual> buildReproductionStream(Stream<Individual>
-  // source) {
-  //
-  // return source;
-  // }
 
   public int size() {
     return individuals.size();

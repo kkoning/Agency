@@ -12,9 +12,6 @@ import agency.Config;
  *
  */
 public class FloatLimiter implements ValueLimiter<Float> {
-	static {
-		Config.registerClassXMLTag(FloatLimiter.class);
-	}
 
 	Float floor;
 	Float ceiling;

@@ -11,9 +11,6 @@ import agency.XMLConfigurable;
 import agency.util.HasRange;
 
 public class VectorRange implements XMLConfigurable, HasRange<Integer> {
-	static {
-		Config.registerClassXMLTag(VectorRange.class);
-	}
 
 	Integer startGenomePosition;
 	Integer endGenomePosition;

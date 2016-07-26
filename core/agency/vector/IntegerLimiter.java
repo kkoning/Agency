@@ -12,9 +12,6 @@ import agency.Config;
  *
  */
 public class IntegerLimiter implements ValueLimiter<Integer> {
-	static {
-		Config.registerClassXMLTag(IntegerLimiter.class);
-	}
 
 	Integer floor;
 	Integer ceiling;

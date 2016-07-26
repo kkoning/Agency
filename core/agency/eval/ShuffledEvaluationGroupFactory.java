@@ -10,6 +10,7 @@ import agency.Config;
 import agency.Environment;
 import agency.Individual;
 import agency.Population;
+import agency.XMLConfigurable;
 import agency.vector.FlatIntegerInitializer;
 
 /**
@@ -24,10 +25,8 @@ import agency.vector.FlatIntegerInitializer;
  * @author kkoning
  *
  */
-public class ShuffledEvaluationGroupFactory implements EvaluationGroupFactory {
-  static {
-    Config.registerClassXMLTag(ShuffledEvaluationGroupFactory.class);
-  }
+public class ShuffledEvaluationGroupFactory
+    implements XMLConfigurable, EvaluationGroupFactory {
 
   int groupSize;
   int timesThrough;

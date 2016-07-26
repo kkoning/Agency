@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class GaussianDoubleMutator implements ValueMutator<Double> {
-	static {
-		Config.registerClassXMLTag(GaussianDoubleMutator.class);
-	}
 	
 	double sd;
 

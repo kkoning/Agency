@@ -14,7 +14,7 @@ public class VectorIndividual<T> extends AbstractIndividual {
     genome = (T[]) new Object[genomeSize];
   }
 
-  public Object[] getGenome() {
+  public T[] getGenome() {
     return genome;
   }
   

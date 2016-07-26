@@ -12,9 +12,6 @@ import agency.Config;
  *
  */
 public class DoubleLimiter implements ValueLimiter<Double> {
-	static {
-		Config.registerClassXMLTag(DoubleLimiter.class);
-	}
 
 	Double floor;
 	Double ceiling;

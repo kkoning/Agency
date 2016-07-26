@@ -5,10 +5,6 @@ import org.w3c.dom.Element;
 
 public class DefaultAgentModelFactory implements AgentModelFactory {
 
-  static {
-    Config.registerClassXMLTag(DefaultAgentModelFactory.class);
-  }
-
   Class<? extends AgentModel> agentModelClass;
 
   public DefaultAgentModelFactory() {
@@ -41,9 +37,10 @@ public class DefaultAgentModelFactory implements AgentModelFactory {
       throw new RuntimeException(
           "Agent Model class " + className + " not found.  Check classpath?");
     }
-    if (!modelClass.isAssignableFrom(AgentModel.class))
-      throw new IllegalArgumentException(
-          "Agent model class must implement AgentModel interface");
+    // TODO: fix!  add a check
+//    if (!modelClass. isAssignableFrom(AgentModel.class))
+//      throw new IllegalArgumentException(
+//          "Agent model class must implement AgentModel interface");
     agentModelClass = (Class<? extends AgentModel>) modelClass;
   }
 

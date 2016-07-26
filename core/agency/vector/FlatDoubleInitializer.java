@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class FlatDoubleInitializer implements ValueInitializer<Double> {
-	static {
-		Config.registerClassXMLTag(FlatDoubleInitializer.class);
-	}
 	
 	double floor;
 	double ceiling;

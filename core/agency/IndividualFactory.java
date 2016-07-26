@@ -13,13 +13,4 @@ public interface IndividualFactory<T extends Individual> extends XMLConfigurable
    */
   T create();
 
-  /**
-   * In some agent models, the range of allowable values in an agents' genome
-   * will be restricted. These limits may have been exeeded by some other
-   * process, e.g., mutation. This function alters the specified individual to
-   * keep genome values within these limits.
-   * 
-   * @param ind
-   */
-  void limit(final T ind);
 }

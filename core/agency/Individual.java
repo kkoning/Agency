@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.apache.commons.lang3.SerializationUtils;
+import agency.eval.FitnessAggregator;
 
 /**
  * Individuals may be evaluated out-of-process, and object identity must
@@ -22,6 +22,9 @@ public interface Individual extends Serializable, Cloneable {
 
 	void setFitness(Fitness fitness);
 	Optional<Fitness> getFitness();
+	
+	void addFitnessSample(Fitness fitness);
+	void aggregateFitness(FitnessAggregator fitnessAggregator);
 	
 	void setParentIDs(List<UUID> parentIDs);
 	List<UUID> getParentIDs();

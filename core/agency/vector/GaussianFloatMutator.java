@@ -16,9 +16,6 @@ import agency.Config;
  *
  */
 public class GaussianFloatMutator implements ValueMutator<Float> {
-	static {
-		Config.registerClassXMLTag(GaussianFloatMutator.class);
-	}
 	
 	float sd;
 

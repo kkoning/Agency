@@ -28,21 +28,21 @@ import java.util.stream.Stream;
 import agency.Individual;
 import agency.Population;
 
-public class TournamentSelector extends AbstractSelector {
+public class OtherTournamentSelector extends AbstractSelector {
 
 	Stream<Individual> tournamentStream;
 	int touramentSize;
 	int topIndividuals = 1;
 	Population pop;
 
-	public TournamentSelector(Population pop, int tournamentSize) {
+	public OtherTournamentSelector(Population pop, int tournamentSize) {
 		super(pop);
 		this.pop = pop;
 		this.touramentSize = tournamentSize;
 		connectTournamentStream();
 	}
 
-	public TournamentSelector(Population pop, int tournamentSize, int topIndividuals) {
+	public OtherTournamentSelector(Population pop, int tournamentSize, int topIndividuals) {
 		super(pop);
 		this.pop = pop;
 		this.touramentSize = tournamentSize;

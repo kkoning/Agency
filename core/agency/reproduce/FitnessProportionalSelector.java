@@ -18,10 +18,6 @@ import agency.SimpleFitness;
 import agency.XMLConfigurable;
 
 public class FitnessProportionalSelector implements BreedingPipeline, XMLConfigurable {
-  static {
-    Config.registerClassXMLTag(FitnessProportionalSelector.class);
-  }
-
 	private static Logger log = Logger.getLogger(FitnessProportionalSelector.class.getCanonicalName());
 
 	private TreeMap<Double, Individual> individuals = new TreeMap<>();

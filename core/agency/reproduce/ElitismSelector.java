@@ -14,9 +14,6 @@ import agency.Population;
 import agency.XMLConfigurable;
 
 public class ElitismSelector implements BreedingPipeline, XMLConfigurable {
-  static {
-    Config.registerClassXMLTag(ElitismSelector.class);
-  }
 
 	Integer numElites;
 	Float proportionElites;

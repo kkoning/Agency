@@ -19,10 +19,6 @@ import agency.Population;
 import agency.XMLConfigurable;
 
 public class TournamentSelector implements BreedingPipeline, XMLConfigurable {
-  static {
-    Config.registerClassXMLTag(TournamentSelector.class);
-  }
-	
 	int touramentSize = 2;  // default to 2 individuals, weakest selection pressure
 	int topIndividuals = 1;
 	

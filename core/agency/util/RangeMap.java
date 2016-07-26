@@ -13,13 +13,15 @@ public class RangeMap<K, V> implements Serializable {
   TreeMap<K, RangeMapEntry<K, V>> treeMap = new TreeMap<>();
 
   public void put(Range<K> range, V object) {
+
+    // Does the new range overlap with a portion already accounted for?
+    // If so, throw exception.
     Map.Entry<K, RangeMapEntry<K, V>> possibleCollisionEntry = treeMap
         .floorEntry(range.getMaximum());
     if (possibleCollisionEntry != null) {
-      // now, does the new one overlap? if so, throw exception
       Range<K> possibleCollisionRange = possibleCollisionEntry.getValue().range;
       if (possibleCollisionRange.isOverlappedBy(range)) {
-        throw new RuntimeException(
+        throw new UnsupportedOperationException(
             "Attempted to insert an overlapping entry into "
                 + "a RangeMap.  Existing range '"
                 + possibleCollisionRange.toString()
@@ -58,6 +60,10 @@ public class RangeMap<K, V> implements Serializable {
   @Override
   public String toString() {
     return "RangeMap[" + treeMap + "]";
+  }
+  
+  public int size() {
+    return treeMap.size();
   }
 
 }

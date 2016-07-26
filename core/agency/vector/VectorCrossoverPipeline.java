@@ -1,4 +1,4 @@
-package agency.reproduce;
+package agency.vector;
 
 import java.util.Optional;
 import java.util.Random;
@@ -8,12 +8,9 @@ import org.w3c.dom.Element;
 import agency.Config;
 import agency.Individual;
 import agency.Population;
-import agency.vector.VectorIndividual;
+import agency.reproduce.BreedingPipeline;
 
 public class VectorCrossoverPipeline implements BreedingPipeline {
-  static {
-    Config.registerClassXMLTag(VectorCrossoverPipeline.class);
-  }
 
   BreedingPipeline    source;
   VectorIndividual<?> otherInd = null;
