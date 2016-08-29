@@ -21,7 +21,7 @@ public class MaximumValue implements AgentModel {
     
     // The agent is assumed to have a VectorInvididual<Integer>
     VectorIndividual<Integer> ind = (VectorIndividual<Integer>) agent
-        .getIndividual();
+        .getManager();
     int genomeSize = ind.getGenomeLength();
     double sumOfGenome = IntStream.range(0, genomeSize).mapToDouble((i) -> {
       return (double) ind.get(i);

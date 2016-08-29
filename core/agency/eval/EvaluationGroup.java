@@ -37,7 +37,7 @@ public class EvaluationGroup implements Serializable, Runnable {
   public Stream<Entry<Individual, Fitness>> getResults() {
 		return agents.entrySet()
 				.stream()
-				.map(ent -> new SimpleEntry<Individual,Fitness>(ent.getKey().getIndividual(), ent.getValue()));
+				.map(ent -> new SimpleEntry<Individual,Fitness>(ent.getKey().getManager(), ent.getValue()));
 	}
 
 	public void addAgent(Agent<? extends Individual> agent) {

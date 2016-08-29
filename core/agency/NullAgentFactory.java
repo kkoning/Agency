@@ -8,7 +8,7 @@ public class NullAgentFactory implements AgentFactory {
 	@Override
 	public Agent<? extends Individual> createAgent(Individual ind) {
 		NullAgent na = new NullAgent();
-		na.setIndividual(ind);
+		na.setManager(ind);
 		return na;
 	}
 
