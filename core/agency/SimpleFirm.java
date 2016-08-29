@@ -4,6 +4,10 @@ public abstract class SimpleFirm<T extends Individual> implements Agent<T> {
   protected T    manager;
   public Account account;
 
+  protected SimpleFirm() {
+    account = new Account();
+  }
+  
   @Override
   public T getManager() {
     return manager;
