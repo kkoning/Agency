@@ -15,7 +15,7 @@ import org.w3c.dom.Element;
 import agency.eval.EvaluationGroup;
 
 public class AgentModelReporter implements XMLConfigurable, Serializable {
-  private static final long serialVersionUID = 5428971414269398005L;
+  private static final long   serialVersionUID   = 5428971414269398005L;
 
   private static final String SEPARATOR          = "\t";
 
@@ -24,7 +24,7 @@ public class AgentModelReporter implements XMLConfigurable, Serializable {
   transient Class<?>          summaryDataClass;
   transient ArrayList<Field>  summaryFields;
   transient ArrayList<String> summaryFieldNames;
-  transient private boolean             writeSummaryHeader = true;
+  transient private boolean   writeSummaryHeader = true;
   transient private boolean   seenSummaryData;
 
   private String              perStepFilename;
@@ -83,7 +83,6 @@ public class AgentModelReporter implements XMLConfigurable, Serializable {
           }
         }
 
-        
         // Write a line of data
         String[] prefix = new String[3];
         prefix[0] = Integer.toString(generation);
@@ -186,7 +185,7 @@ public class AgentModelReporter implements XMLConfigurable, Serializable {
     File f = new File(fileName);
     FileOutputStream fos;
     try {
-      fos = new FileOutputStream(f,true);
+      fos = new FileOutputStream(f, true);
       toReturn = new PrintStream(fos);
     } catch (FileNotFoundException e) {
       // TODO Auto-generated catch block
@@ -214,7 +213,7 @@ public class AgentModelReporter implements XMLConfigurable, Serializable {
 
     Field[] otherFields = c.getFields();
     for (Field f : otherFields) {
-      
+
       if (!seenFields.contains(f)) {
         f.setAccessible(true);
         toReturn.fieldNames.add(f.getName());
