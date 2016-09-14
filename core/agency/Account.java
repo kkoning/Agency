@@ -106,7 +106,14 @@ public class Account {
     public double getAmount() {
       return amount;
     }
-
+    
   }
 
+  @Override
+  public String toString() {
+    return super.toString() + "[balance=" + balance + ", balanceRestricted=" + balanceRestricted + "]";
+  }
+
+  
+  
 }
