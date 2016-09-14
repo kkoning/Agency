@@ -4,13 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
 import java.util.TreeMap;
-import java.util.Map.Entry;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,41 +12,34 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import agency.eval.EvaluationGroup;
 import agency.eval.EvaluationGroupFactory;
-import agency.eval.EvaluationManager;
 import agency.eval.Evaluator;
-import agency.reproduce.BreedingPipeline;
-import agency.vector.ValueLimiter;
-import agency.vector.ValueMutator;
-import agency.vector.VectorMutationPipeline;
 
 public class Environment implements XMLConfigurable, Serializable {
-  private static final long serialVersionUID = 3057043882181403186L;
+  private static final long  serialVersionUID = 3057043882181403186L;
 
-  int                       generation       = 0;
+  int                        generation       = 0;
 
-  Environment               superEnvironment;
-  ArrayList<Population>     populations;
-  ArrayList<Environment>    subEnvironments;
+  String                     id;
 
-  EvaluationGroupFactory    evaluationGroupFactory;
-  AgentModelFactory<?>      agentModelFactory;
+  ArrayList<PopulationGroup> populationGroups;
 
-  AgentModelReporter        agentModelReporter;
+  EvaluationGroupFactory     evaluationGroupFactory;
+  AgentModelFactory<?>       agentModelFactory;
 
-  transient Evaluator       evaluator;
+  AgentModelReporter         agentModelReporter;
+
+  transient Evaluator        evaluator;
 
   public Environment() {
-    this.populations = new ArrayList<>();
-  }
-
-  public Environment(Environment parent) {
-    this();
-    this.superEnvironment = parent;
+    this.populationGroups = new ArrayList<>();
   }
 
   @Override
   public void readXMLConfig(Element e) {
     // TODO: Read a random seed
+
+    // TODO: Named ID
+    id = e.getAttribute("id");
 
     // Things to read:
     // - Populations (check)
@@ -67,8 +54,8 @@ public class Environment implements XMLConfigurable, Serializable {
         Element child = (Element) node;
         XMLConfigurable xc = Config.initializeXMLConfigurable(child);
 
-        if (xc instanceof Population) {
-          populations.add((Population) xc);
+        if (xc instanceof PopulationGroup) {
+          populationGroups.add((PopulationGroup) xc);
         } else if (xc instanceof EvaluationGroupFactory) {
           if (evaluationGroupFactory != null)
             throw new UnsupportedOperationException("Population can only have one EvaluationGroupFactory");
@@ -86,13 +73,12 @@ public class Environment implements XMLConfigurable, Serializable {
             throw new UnsupportedOperationException("Population can only have one AgentModelFactory");
           agentModelReporter = (AgentModelReporter) xc;
         }
-        
-        
+
       }
     }
 
-    if (populations.size() < 1)
-      throw new UnsupportedOperationException("Environment must have at least one Population");
+    if (populationGroups.size() < 1)
+      throw new UnsupportedOperationException("Environment must have at least one Population Group");
 
     if (evaluationGroupFactory == null)
       throw new UnsupportedOperationException("Environment must have an EvaluationGroupFactory");
@@ -107,9 +93,9 @@ public class Environment implements XMLConfigurable, Serializable {
 
   @Override
   public void writeXMLConfig(Document d, Element e) {
-    for (Population pop : populations) {
-      Element popE = Config.createNamedElement(d, pop, "Population");
-      e.appendChild(popE);
+    for (PopulationGroup popGroup : populationGroups) {
+      Element popGroupE = Config.createNamedElement(d, popGroup, "PopulationGroup");
+      e.appendChild(popGroupE);
     }
     Element egfE = Config.createUnnamedElement(d, evaluationGroupFactory);
     Element amfE = Config.createUnnamedElement(d, agentModelFactory);
@@ -134,7 +120,7 @@ public class Environment implements XMLConfigurable, Serializable {
       });
 
       // Collect data from the agent models
-      if (agentModelReporter != null) {  // Data from models is optional here...
+      if (agentModelReporter != null) { // Data from models is optional here...
         agentModelReporter.perStepData(generation, eg);
         agentModelReporter.summaryData(generation, eg);
       }
@@ -142,15 +128,15 @@ public class Environment implements XMLConfigurable, Serializable {
     });
 
     // Aggregate fitnesses
-    for (Population pop : populations) {
-      pop.aggregateFitnesses(); // Parallelization inside here
+    for (PopulationGroup popGroup : populationGroups) {
+      popGroup.aggregateFitnesses(); // Parallelization inside here
     }
 
     // TODO: Balance populations
 
     // Reproduce populations
-    for (Population pop : populations) {
-      pop.reproduce();
+    for (PopulationGroup popGroup : populationGroups) {
+      popGroup.reproduce();
     }
 
     generation++;
@@ -172,55 +158,62 @@ public class Environment implements XMLConfigurable, Serializable {
     this.agentModelFactory = agentModelFactory;
   }
 
-  public void addPopulation(Population pop) {
-    populations.add(pop);
+  public List<PopulationGroup> getPopulationGroups() {
+    return populationGroups;
   }
 
-  public void addEnvironment(Environment env) {
-    if (subEnvironments == null)
-      subEnvironments = new ArrayList<Environment>();
-    subEnvironments.add(env);
+  /**
+   * @param id
+   * @return the PopulationGroup in this environment with the specified id, or
+   *         null if it does not exist.
+   */
+  public PopulationGroup getPopulationGroup(String id) {
+    if (id == null)
+      return null;
+    for (PopulationGroup pGroup : populationGroups) {
+      if (id.equals(pGroup.id))
+        return pGroup;
+    }
+    return null;
   }
 
-  public ArrayList<Population> getPopulations() {
-    return populations;
-  }
+  // Stream<Individual> getRandomIndividuals() {
+  // PopulationMap indexedPop = new PopulationMap();
+  // Collection<Population> pops =
+  // getAllPopulations().collect(Collectors.toCollection(ArrayList::new));
+  // indexedPop.addPopulations(pops);
+  //
+  // Random r = ThreadLocalRandom.current();
+  //
+  // Stream<Individual> toReturn = Stream.generate(() -> (Integer)
+  // r.nextInt(indexedPop.totalIndividuals()))
+  // .map(i -> indexedPop.getIndividual(i));
+  //
+  // return toReturn;
+  // }
 
-  Stream<Individual> getRandomIndividuals() {
-    PopulationMap indexedPop = new PopulationMap();
-    Collection<Population> pops = getAllPopulations().collect(Collectors.toCollection(ArrayList::new));
-    indexedPop.addPopulations(pops);
-
-    Random r = ThreadLocalRandom.current();
-
-    Stream<Individual> toReturn = Stream.generate(() -> (Integer) r.nextInt(indexedPop.totalIndividuals()))
-        .map(i -> indexedPop.getIndividual(i));
-
-    return toReturn;
-  }
-
-  Stream<Population> getAllPopulations() {
-    Stream<Population> toReturn = Stream.empty();
-    toReturn = Stream.concat(toReturn, populations.stream());
-    if (subEnvironments != null)
-      for (Environment e : subEnvironments)
-        toReturn = Stream.concat(toReturn, e.getAllPopulations());
-    return toReturn;
-  }
+  // Stream<Population> getAllPopulations() {
+  // Stream<Population> toReturn = Stream.empty();
+  // toReturn = Stream.concat(toReturn, populations.stream());
+  // if (subEnvironments != null)
+  // for (Environment e : subEnvironments)
+  // toReturn = Stream.concat(toReturn, e.getAllPopulations());
+  // return toReturn;
+  // }
 
   /**
    * @return All the individuals present in this environment, regardless of
    *         population.
    */
-  Stream<Individual> allIndividuals() {
-    Stream<Individual> toReturn = Stream.empty();
-    for (Population p : populations)
-      toReturn = Stream.concat(toReturn, p.individuals.stream());
-    if (subEnvironments != null)
-      for (Environment e : subEnvironments)
-        toReturn = Stream.concat(toReturn, e.allIndividuals());
-    return toReturn;
-  }
+  // Stream<Individual> allIndividuals() {
+  // Stream<Individual> toReturn = Stream.empty();
+  // for (Population p : populations)
+  // toReturn = Stream.concat(toReturn, p.individuals.stream());
+  // if (subEnvironments != null)
+  // for (Environment e : subEnvironments)
+  // toReturn = Stream.concat(toReturn, e.allIndividuals());
+  // return toReturn;
+  // }
 
   // public Stream<Entry<Individual, Fitness>> allIndividualsWithFitness() {
   // Stream<Entry<Individual, Fitness>> toReturn = Stream.empty();

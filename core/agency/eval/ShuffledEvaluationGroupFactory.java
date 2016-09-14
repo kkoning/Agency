@@ -10,6 +10,7 @@ import agency.Config;
 import agency.Environment;
 import agency.Individual;
 import agency.Population;
+import agency.PopulationGroup;
 import agency.XMLConfigurable;
 import agency.vector.FlatIntegerInitializer;
 
@@ -57,8 +58,10 @@ public class ShuffledEvaluationGroupFactory
     // First, collect all individuals in the environment into a flat list.
     List<Agent<? extends Individual>> allAgentList;
     Stream<Agent<? extends Individual>> allAgentStream = Stream.empty();
-    for (Population pop : env.getPopulations()) {
-      allAgentStream = Stream.concat(allAgentStream, pop.allAgents());
+    for (PopulationGroup popGroup : env.getPopulationGroups()) {
+      for (Population pop : popGroup.getPopulations()) {
+        allAgentStream = Stream.concat(allAgentStream, pop.allAgents());
+      }
     }
     allAgentList = allAgentStream.collect(Collectors.toList());
 

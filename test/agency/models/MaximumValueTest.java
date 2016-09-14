@@ -1,11 +1,12 @@
 package agency.models;
 
-import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import agency.Config;
 import agency.Environment;
 import agency.Population;
+import agency.PopulationGroup;
 import agency.XMLConfigurable;
 import agency.eval.EvaluationGroup;
 
@@ -30,12 +31,14 @@ public class MaximumValueTest {
 	public void testEvaluatePop() {
 
 	  System.out.println("---Start testEvaluatePop");
-		ArrayList<Population> pops = env.getPopulations();
+		List<PopulationGroup> popGroups = env.getPopulationGroups();
 
     System.out.println("---Initial Populations");
-		for (Population pop : pops) {
-			System.out.println(pop);
-		}
+    for (PopulationGroup popGroup : popGroups) {
+      for (Population pop : popGroup.getPopulations()) {
+        System.out.println(pop);
+      }
+    }
 		
 		for (int i = 0; i < 5; i++) {
 		  env.evolve();
@@ -43,9 +46,11 @@ public class MaximumValueTest {
 
     System.out.println("---Population after 5 generations");
 		
-		for (Population pop : pops) {
-			System.out.println(pop);
-		}
+    for (PopulationGroup popGroup : popGroups) {
+      for (Population pop : popGroup.getPopulations()) {
+        System.out.println(pop);
+      }
+    }
 
     for (int i = 0; i < 95; i++) {
       env.evolve();
@@ -53,8 +58,10 @@ public class MaximumValueTest {
 
     System.out.println("---Population after 100 generations");
 
-    for (Population pop : pops) {
-      System.out.println(pop);
+    for (PopulationGroup popGroup : popGroups) {
+      for (Population pop : popGroup.getPopulations()) {
+        System.out.println(pop);
+      }
     }
 
 		

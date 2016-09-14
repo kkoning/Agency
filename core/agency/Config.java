@@ -71,6 +71,7 @@ public class Config {
     // List of short tags/classes
     registerClassXMLTag(Environment.class);
     registerClassXMLTag(Population.class);
+    registerClassXMLTag(PopulationGroup.class);
     registerClassXMLTag(ElitismSelector.class);
     registerClassXMLTag(FitnessProportionalSelector.class);
     registerClassXMLTag(RandomIndividualSelector.class);
