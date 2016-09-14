@@ -2,7 +2,12 @@ package agency;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -48,7 +53,49 @@ public class PopulationGroup implements Serializable, XMLConfigurable {
     }
 
   }
+  
+  public Stream<Agent<? extends Individual>> shuffledAgentStream() {
+    return Stream.generate(new ShuffledAgentStreamHelper());
+  }
+  
+  class ShuffledAgentStreamHelper implements Supplier<Agent<? extends Individual>> {
+    ArrayList<IndividualPopulationPair> inds = new ArrayList<>();
+    Iterator<IndividualPopulationPair> it;
+  
+    ShuffledAgentStreamHelper() {
+      for (Population pop : populations) {
+        for (Individual ind : pop.individuals) {
+          IndividualPopulationPair ipp = new IndividualPopulationPair();
+          ipp.ind = ind;
+          ipp.p = pop;
+          inds.add(ipp);
+        }
+      }
+      Collections.shuffle(inds, ThreadLocalRandom.current());
+      it = inds.iterator();
+    }
 
+    @Override
+    public Agent<? extends Individual> get() {
+      if (it.hasNext())
+        return it.next().newAgent();
+      else {
+        Collections.shuffle(inds, ThreadLocalRandom.current());
+        it = inds.iterator();
+        return it.next().newAgent();
+      }
+        
+    }
+  }
+
+  public static class IndividualPopulationPair {
+    Individual ind;
+    Population p;
+    public Agent<? extends Individual> newAgent() {
+      return p.createAgent(ind);
+    }
+  }
+  
   public void aggregateFitnesses() {
     for (Population pop : populations) {
       pop.aggregateFitnesses(); // Parallelization inside here

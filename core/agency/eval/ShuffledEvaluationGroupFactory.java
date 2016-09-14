@@ -1,18 +1,19 @@
 package agency.eval;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import agency.Agent;
-import agency.Config;
 import agency.Environment;
 import agency.Individual;
-import agency.Population;
 import agency.PopulationGroup;
 import agency.XMLConfigurable;
-import agency.vector.FlatIntegerInitializer;
 
 /**
  * Creates {@link EvaluationGroup}s by
@@ -26,84 +27,114 @@ import agency.vector.FlatIntegerInitializer;
  * @author kkoning
  *
  */
-public class ShuffledEvaluationGroupFactory
-    implements XMLConfigurable, EvaluationGroupFactory {
+public class ShuffledEvaluationGroupFactory implements XMLConfigurable, EvaluationGroupFactory {
 
-  int groupSize;
-  int timesThrough;
+  Map<String, Integer> numAgentsFrom;
+  Integer              numGroups;
 
   public ShuffledEvaluationGroupFactory() {
-  }
-
-  public ShuffledEvaluationGroupFactory(int groupSize, int timesThrough) {
-    this.groupSize = groupSize;
-    this.timesThrough = timesThrough;
+    numAgentsFrom = new IdentityHashMap<>();
   }
 
   @Override
   public void readXMLConfig(Element e) {
-    groupSize = Integer.parseInt(e.getAttribute("groupSize"));
-    timesThrough = Integer.parseInt(e.getAttribute("timesThrough"));
+
+    try {
+      numGroups = Integer.parseInt(e.getAttribute("numGroups"));
+    } catch (Exception ex) {
+      throw new UnsupportedOperationException("ShuffledEvaluationGroupFactory must specify a numGroups=\"<Integer>\"", ex);
+    }
+
+    NodeList nl = e.getChildNodes();
+    for (int i = 0; i < nl.getLength(); i++) {
+      Node node = nl.item(i);
+      if (node instanceof Element) {
+        Element child = (Element) node;
+
+        String elementName = child.getTagName();
+        if (elementName == null)
+          throw new UnsupportedOperationException("Null element name for tag in a ShuffledEvaluationGroupFactory");
+        if (!elementName.equalsIgnoreCase("AgentSource"))
+          throw new UnsupportedOperationException("ShuffledEvaluationGroup must have only AgentSource child elements");
+
+        String popGroupName = child.getAttribute("populationGroup");
+        if (popGroupName == null)
+          throw new UnsupportedOperationException("AgentSource must specify a populationGroup=\"<id>\"");
+
+        try {
+          Integer numAgents = Integer.parseInt(child.getAttribute("numAgents"));
+          numAgentsFrom.put(popGroupName, numAgents);
+        } catch (Exception ex) {
+          throw new UnsupportedOperationException("AgentSource must specify a numAgents=\"<Integer>\"", ex);
+        }
+
+      }
+    }
+
   }
 
   @Override
   public void writeXMLConfig(Document d, Element e) {
-    e.setAttribute("groupSize", Integer.toString(groupSize));
-    e.setAttribute("timesThrough", Integer.toString(timesThrough));
+    e.setAttribute("numGroups", Integer.toString(numGroups));
+
+    for (Map.Entry<String, Integer> entry : numAgentsFrom.entrySet()) {
+      Element childE = d.createElement("AgentSource");
+      childE.setAttribute("populationGroup", entry.getKey());
+      childE.setAttribute("numAgents", entry.getValue().toString());
+      e.appendChild(childE);
+    }
+
   }
 
   @Override
   public Stream<EvaluationGroup> createEvaluationGroups(Environment env) {
 
-    // First, collect all individuals in the environment into a flat list.
-    List<Agent<? extends Individual>> allAgentList;
-    Stream<Agent<? extends Individual>> allAgentStream = Stream.empty();
-    for (PopulationGroup popGroup : env.getPopulationGroups()) {
-      for (Population pop : popGroup.getPopulations()) {
-        allAgentStream = Stream.concat(allAgentStream, pop.allAgents());
-      }
+    ShuffledEvaluationGroupHelper segh = new ShuffledEvaluationGroupHelper(env);
+
+    for (Map.Entry<String, Integer> entry : numAgentsFrom.entrySet()) {
+      PopulationGroup pg = env.getPopulationGroup(entry.getKey());
+      if (pg == null)
+        throw new UnsupportedOperationException("ShuffledEvaluationGroupFactory cannot find PopulationGroup with id=" + entry.getKey());
+      
+      Iterator<Agent<? extends Individual>> popIterator = pg.shuffledAgentStream().iterator();
+      segh.addPopulationGroup(popIterator, entry.getValue());
     }
-    allAgentList = allAgentStream.collect(Collectors.toList());
-
-    // Obviously, we can't create groups that are larger than the entire
-    // population...
-    if (allAgentList.size() < groupSize)
-      throw new RuntimeException(
-          "Not enough individuals (" + allAgentList.size()
-              + ") to fill one evaluation group (needed " + groupSize + ")");
-
-    // This object generates EvaluationGroups from the list of all agents.
-    ShufflingEvaluationGroupGenerator segc = new ShufflingEvaluationGroupGenerator(
-        allAgentList, groupSize, env.getAgentModelFactory());
-
-    int numEvaluations = (allAgentList.size() * timesThrough);
-    int numGroups = numEvaluations / groupSize;
-
-    // If things don't match exactly, go slightly over rather than slightly
-    // under.
-    if ((numEvaluations % groupSize) != 0)
-      numGroups++;
-
+    
     Stream<EvaluationGroup> toReturn;
-    toReturn = Stream.generate(segc::generate).limit(numGroups);
+    toReturn = Stream.generate(segh);
+    return toReturn.limit(numGroups);
+    
 
-    return toReturn;
   }
 
-  public int getGroupSize() {
-    return groupSize;
-  }
+  class ShuffledEvaluationGroupHelper implements Supplier<EvaluationGroup> {
 
-  public void setGroupSize(int groupSize) {
-    this.groupSize = groupSize;
-  }
+    Map<Iterator<Agent<? extends Individual>>, Integer> na;
+    Environment                                         env;
 
-  public int getTimesThrough() {
-    return timesThrough;
-  }
+    ShuffledEvaluationGroupHelper(Environment env) {
+      na = new IdentityHashMap<>();
+      this.env = env;
+    }
 
-  public void setTimesThrough(int timesThrough) {
-    this.timesThrough = timesThrough;
+    void addPopulationGroup(Iterator<Agent<? extends Individual>> agentSource, Integer numAgents) {
+      na.put(agentSource, numAgents);
+    }
+
+    @Override
+    public EvaluationGroup get() {
+      EvaluationGroup eg = new EvaluationGroup();
+      eg.setModel(env.getAgentModelFactory().createAgentModel());
+      for (Map.Entry<Iterator<Agent<? extends Individual>>, Integer> entry : na.entrySet()) {
+        for (int i = 0; i < entry.getValue(); i++) {
+          Agent<? extends Individual> agent = entry.getKey().next();
+          eg.addAgent(agent);
+        }
+
+      }
+      return eg;
+    }
+
   }
 
 }

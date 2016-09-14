@@ -26,8 +26,10 @@
 	</PopulationGroup>
 
 	<!-- Need an EvaluationGroupFactory -->
-	<ShuffledEvaluationGroupFactory
-		groupSize="11" timesThrough="2" />
+	<ShuffledEvaluationGroupFactory numGroups="1000">
+		<AgentSource populationGroup="test" numAgents="10"/>
+	</ShuffledEvaluationGroupFactory>
+	
 
 	<!-- Need an Agent Model Factory -->
 	<DefaultAgentModelFactory modelClass="agency.models.simple.MaximumValue" />
