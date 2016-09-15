@@ -21,4 +21,5 @@ package agency;
 public interface Agent<T extends Individual> {
   public T getManager();
   public void setManager(T ind);
+  public void setModel(AgentModel model);
 }

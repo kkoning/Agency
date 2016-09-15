@@ -53,8 +53,11 @@ public class EvaluationGroup implements Serializable, Runnable {
 
 	@Override
 	public void run() {
-		for (Agent<? extends Individual> agent : agents.keySet())
-			model.addAgent(agent);
+	  // Associate the Agents with the model
+	  for (Agent<? extends Individual> agent : agents.keySet()) {
+      model.addAgent(agent);
+      agent.setModel(model);
+		}
 
 		// Actually run the agent model
 		int maxSteps = model.getMaxSteps();

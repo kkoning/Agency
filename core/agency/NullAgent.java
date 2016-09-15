@@ -2,6 +2,7 @@ package agency;
 
 public class NullAgent implements Agent<Individual> {
 	Individual ind;
+	AgentModel model;
 
 	@Override
 	public Individual getManager() {
@@ -17,7 +18,10 @@ public class NullAgent implements Agent<Individual> {
 	public String toString() {
 		return "NullAgent[" + getManager().toString() + "]";
 	}
-	
-	
+
+  @Override
+  public void setModel(AgentModel model) {
+    this.model = model;
+  }
 	
 }

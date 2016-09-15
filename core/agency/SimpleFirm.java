@@ -3,11 +3,12 @@ package agency;
 public abstract class SimpleFirm<T extends Individual> implements Agent<T> {
   protected T    manager;
   public Account account;
+  AgentModel     model;
 
   protected SimpleFirm() {
     account = new Account();
   }
-  
+
   @Override
   public T getManager() {
     return manager;
@@ -16,6 +17,14 @@ public abstract class SimpleFirm<T extends Individual> implements Agent<T> {
   @Override
   public void setManager(T manager) {
     this.manager = manager;
+  }
+  
+  public AgentModel getModel() {
+    return model;
+  }
+
+  public void setModel(AgentModel model) {
+    this.model = model;
   }
 
   /**
