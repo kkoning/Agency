@@ -11,6 +11,8 @@ import agency.vector.VectorIndividual;
 
 public class MaximumValue implements AgentModel {
 
+  Double scalingFactor = 1.0;
+  
   public class SummaryData {
     int randomInt;
     String label;
@@ -27,7 +29,7 @@ public class MaximumValue implements AgentModel {
       return (double) ind.get(i);
     }).sum();
 
-    Fitness fit = new SimpleFitness(sumOfGenome);
+    Fitness fit = new SimpleFitness(sumOfGenome * scalingFactor);
     return fit;
   }
 

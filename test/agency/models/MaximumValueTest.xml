@@ -32,7 +32,9 @@
 	
 
 	<!-- Need an Agent Model Factory -->
-	<DefaultAgentModelFactory modelClass="agency.models.simple.MaximumValue" />
+	<DefaultAgentModelFactory modelClass="agency.models.simple.MaximumValue">
+		<Parameter name="scalingFactor" value="2.0"/>
+	</DefaultAgentModelFactory>
 
 	<!-- Need an Evaluator -->
 	<LocalEvaluator />
