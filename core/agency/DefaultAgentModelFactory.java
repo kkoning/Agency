@@ -29,21 +29,22 @@ public class DefaultAgentModelFactory implements AgentModelFactory {
     try {
       model = agentModelClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(
+          "Cannot instantiate AgentModel of class " + agentModelClass.getCanonicalName() + ".  Ensure there is a no-argument constructor?",
+          e);
     }
 
     // Set parameters
-    for (Map.Entry<Field, Object> entry : parameters.entrySet()) {
-      Field f = entry.getKey();
-      Object v = entry.getValue();
-      try {
-        f.set(model, v);
-      } catch (IllegalArgumentException | IllegalAccessException e) {
-        throw new UnsupportedOperationException("Cannot set parameter " + f.getName() + ".  Is it accessible?", e);
+      for (Map.Entry<Field, Object> entry : parameters.entrySet()) {
+        Field f = entry.getKey();
+        Object v = entry.getValue();
+        try {
+          f.set(model, v);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+          throw new UnsupportedOperationException("Cannot set parameter " + f.getName() + ".  Is it accessible?", e);
+        }
+
       }
-      
-      
-    }
     return model;
   }
 
@@ -116,7 +117,7 @@ public class DefaultAgentModelFactory implements AgentModelFactory {
   @Override
   public void writeXMLConfig(Document d, Element e) {
     e.setAttribute("modelClass", agentModelClass.getCanonicalName());
-    
+
     for (Map.Entry<Field, Object> entry : parameters.entrySet()) {
       Element childE = d.createElement("Parameter");
       childE.setAttribute("name", entry.getKey().getName());
@@ -124,8 +125,6 @@ public class DefaultAgentModelFactory implements AgentModelFactory {
       e.appendChild(childE);
     }
 
-    
-    
   }
 
 }

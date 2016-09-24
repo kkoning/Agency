@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -15,112 +16,122 @@ import org.w3c.dom.NodeList;
 
 public class PopulationGroup implements Serializable, XMLConfigurable {
 
-  private static final long serialVersionUID = -4325119773362195331L;
+    private static final long serialVersionUID = -4325119773362195331L;
 
-  String                    id;
-  List<Population>          populations;
-  Integer                   totalPopulationSize;
+    String id;
+    List<Population> populations;
+    Integer totalPopulationSize;
 
-  public PopulationGroup() {
-    populations = new ArrayList<>();
-  }
-
-  @Override
-  public void readXMLConfig(Element e) {
-
-    id = e.getAttribute("id");
-    try {
-      totalPopulationSize = Integer.parseInt(e.getAttribute("totalSize"));
-    } catch (NumberFormatException nfe) {
-      throw new UnsupportedOperationException("PopulationGroup must have a totalSize=<Integer>");
-    }
-    
-
-    NodeList nl = e.getChildNodes();
-    for (int i = 0; i < nl.getLength(); i++) {
-      Node node = nl.item(i);
-      if (node instanceof Element) {
-        Element child = (Element) node;
-        XMLConfigurable xc = Config.initializeXMLConfigurable(child);
-
-        if (xc instanceof Population) {
-          populations.add((Population) xc);
-        } else {
-          throw new UnsupportedOperationException("Unrecognized element in Population");
-        }
-
-      }
-    }
-
-  }
-  
-  public Stream<Agent<? extends Individual>> shuffledAgentStream() {
-    return Stream.generate(new ShuffledAgentStreamHelper());
-  }
-  
-  class ShuffledAgentStreamHelper implements Supplier<Agent<? extends Individual>> {
-    ArrayList<IndividualPopulationPair> inds = new ArrayList<>();
-    Iterator<IndividualPopulationPair> it;
-  
-    ShuffledAgentStreamHelper() {
-      for (Population pop : populations) {
-        for (Individual ind : pop.individuals) {
-          IndividualPopulationPair ipp = new IndividualPopulationPair();
-          ipp.ind = ind;
-          ipp.p = pop;
-          inds.add(ipp);
-        }
-      }
-      Collections.shuffle(inds, ThreadLocalRandom.current());
-      it = inds.iterator();
+    public PopulationGroup() {
+        populations = new ArrayList<>();
     }
 
     @Override
-    public Agent<? extends Individual> get() {
-      if (it.hasNext())
-        return it.next().newAgent();
-      else {
-        Collections.shuffle(inds, ThreadLocalRandom.current());
-        it = inds.iterator();
-        return it.next().newAgent();
-      }
-        
-    }
-  }
+    public void readXMLConfig(Element e) {
 
-  public static class IndividualPopulationPair {
-    Individual ind;
-    Population p;
-    public Agent<? extends Individual> newAgent() {
-      return p.createAgent(ind);
+        id = e.getAttribute("id");
+        try {
+            totalPopulationSize = Integer.parseInt(e.getAttribute("totalSize"));
+        } catch (NumberFormatException nfe) {
+            throw new UnsupportedOperationException("PopulationGroup must have a totalSize=<Integer>");
+        }
+
+
+        NodeList nl = e.getChildNodes();
+        for (int i = 0; i < nl.getLength(); i++) {
+            Node node = nl.item(i);
+            if (node instanceof Element) {
+                Element child = (Element) node;
+                XMLConfigurable xc = Config.initializeXMLConfigurable(child);
+
+                if (xc instanceof Population) {
+                    populations.add((Population) xc);
+                } else {
+                    throw new UnsupportedOperationException("Unrecognized element in Population");
+                }
+
+            }
+        }
+
     }
-  }
-  
-  public void aggregateFitnesses() {
-    for (Population pop : populations) {
-      pop.aggregateFitnesses(); // Parallelization inside here
+
+    public Stream<Agent<? extends Individual>> shuffledAgentStream() {
+        return Stream.generate(new ShuffledAgentStreamHelper());
     }
-  }
-  
-  public void reproduce() {
-    for (Population pop : populations) {
-      pop.reproduce();
+
+    /**
+     * Manually add a population to this population group.
+     *
+     * @param population
+     */
+    void addPopulationGroup(Population population) {
+        this.populations.add(population);
     }
-  }
-  
-  public List<Population> getPopulations() {
-    return populations;
-  }
-  
-  @Override
-  public void writeXMLConfig(Document d, Element e) {
-    e.setAttribute("id", id);
-    e.setAttribute("totalSize", totalPopulationSize.toString());
-    for (Population pop : populations) {
-      Element subPop = Config.createUnnamedElement(d, pop);
-      e.appendChild(subPop);
+
+    class ShuffledAgentStreamHelper implements Supplier<Agent<? extends Individual>> {
+        ArrayList<IndividualPopulationPair> inds = new ArrayList<>();
+        Iterator<IndividualPopulationPair> it;
+
+        ShuffledAgentStreamHelper() {
+            for (Population pop : populations) {
+                for (Individual ind : pop.individuals) {
+                    IndividualPopulationPair ipp = new IndividualPopulationPair();
+                    ipp.ind = ind;
+                    ipp.p = pop;
+                    inds.add(ipp);
+                }
+            }
+            Collections.shuffle(inds, ThreadLocalRandom.current());
+            it = inds.iterator();
+        }
+
+        @Override
+        public Agent<? extends Individual> get() {
+            if (it.hasNext())
+                return it.next().newAgent();
+            else {
+                Collections.shuffle(inds, ThreadLocalRandom.current());
+                it = inds.iterator();
+                return it.next().newAgent();
+            }
+
+        }
     }
-    
-  }
+
+    public static class IndividualPopulationPair {
+        Individual ind;
+        Population p;
+
+        public Agent<? extends Individual> newAgent() {
+            return p.createAgent(ind);
+        }
+    }
+
+    public void aggregateFitnesses() {
+        for (Population pop : populations) {
+            pop.aggregateFitnesses(); // Parallelization inside here
+        }
+    }
+
+    public void reproduce() {
+        for (Population pop : populations) {
+            pop.reproduce();
+        }
+    }
+
+    public List<Population> getPopulations() {
+        return populations;
+    }
+
+    @Override
+    public void writeXMLConfig(Document d, Element e) {
+        e.setAttribute("id", id);
+        e.setAttribute("totalSize", totalPopulationSize.toString());
+        for (Population pop : populations) {
+            Element subPop = Config.createUnnamedElement(d, pop);
+            e.appendChild(subPop);
+        }
+
+    }
 
 }

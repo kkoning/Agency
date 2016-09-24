@@ -132,7 +132,11 @@ public class AgentModelReporter implements XMLConfigurable, Serializable {
       prefix[1] = eg.getId().toString();
       ArrayList<String> data = new ArrayList<>(summaryFields.size());
       for (Field f : summaryFields) {
-        data.add(f.get(eg.getSummaryData()).toString());
+        Object o = f.get(eg.getSummaryData());
+        if (o == null)
+          data.add("null");
+        else
+        data.add(o.toString());
       }
       summaryOut.println(constructLine(prefix, data));
     } catch (IllegalArgumentException e) {

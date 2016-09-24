@@ -102,6 +102,8 @@ public class Config {
 
     registerClassXMLTag(MeanSimpleFitnessAggregator.class);
     registerClassXMLTag(NullAgentFactory.class);
+    registerClassXMLTag(DefaultAgentFactory.class);
+    
     registerClassXMLTag(ShuffledEvaluationGroupFactory.class);
     registerClassXMLTag(LocalEvaluator.class);
     registerClassXMLTag(AgentModelReporter.class);
