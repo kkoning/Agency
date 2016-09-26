@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,9 +19,10 @@ import agency.util.RandomStream;
 import agency.vector.ValueMutator;
 
 public class Population implements Serializable, XMLConfigurable {
-  private static final long     serialVersionUID = 4940155716065322170L;
+  private static final long serialVersionUID = 4940155716065322170L;
 
-  int                           generation       = 0;
+  int generation = 0;
+  String                        id;
   Integer                       initialSize;
   List<Individual>              individuals;
   IndividualFactory<Individual> indFactory;
@@ -32,19 +35,25 @@ public class Population implements Serializable, XMLConfigurable {
   }
 
   public Population(IndividualFactory<? extends Individual> indFactory,
-      AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
+                    AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
+    this.id = UUID.randomUUID().toString();
     this.indFactory = (IndividualFactory<Individual>) indFactory;
     this.agentFactory = agentFactory;
     this.breedingPipeline = bp;
     this.initialSize = initialSize;
+
 
     initializePopulation(initialSize);
   }
 
   @Override
   public void readXMLConfig(Element e) {
-    
-    
+
+    String idString = e.getAttribute("id");
+    if (idString != null)
+      if (!idString.equalsIgnoreCase(""))
+        id = idString;
+
     NodeList nl = e.getChildNodes();
     for (int i = 0; i < nl.getLength(); i++) {
       Node node = nl.item(i);
@@ -55,46 +64,46 @@ public class Population implements Serializable, XMLConfigurable {
         if (xc instanceof IndividualFactory) {
           if (indFactory != null) // Can only have one IndividualFactory
             throw new UnsupportedOperationException(
-                "Population cannot have more than one IndividualFactory");
+                    "Population cannot have more than one IndividualFactory");
           indFactory = (IndividualFactory<Individual>) xc;
         } else if (xc instanceof AgentFactory) {
           if (agentFactory != null) // Can only have one AgentFactory
             throw new UnsupportedOperationException(
-                "Population cannot have more than one AgentFactory");
+                    "Population cannot have more than one AgentFactory");
           agentFactory = (AgentFactory) xc;
         } else if (xc instanceof BreedingPipeline) {
           if (breedingPipeline != null) // Can only have one IndividualFactory
             throw new UnsupportedOperationException(
-                "Population cannot have more than one BreedingPipeline");
+                    "Population cannot have more than one BreedingPipeline");
           breedingPipeline = (BreedingPipeline) xc;
         } else if (xc instanceof FitnessAggregator) {
           if (fitnessAggregator != null) // Can only have one FitnessAggregator
             throw new UnsupportedOperationException(
-                "Population cannot have more than one FitnessAggregator");
+                    "Population cannot have more than one FitnessAggregator");
           fitnessAggregator = (FitnessAggregator) xc;
         } else {
           throw new UnsupportedOperationException("Unrecognized element in Population");
         }
-        
+
       }
     }
 
     if (indFactory == null)
       throw new UnsupportedOperationException(
-          "Population must have an IndividualFactory to initialize the population");
+              "Population must have an IndividualFactory to initialize the population");
 
     if (agentFactory == null)
       throw new UnsupportedOperationException(
-          "Population must have an AgentFactory to convert individuals to Agents");
+              "Population must have an AgentFactory to convert individuals to Agents");
 
     if (breedingPipeline == null)
       throw new UnsupportedOperationException(
-          "Population must have an BreedingPipeline to evolve the population");
+              "Population must have an BreedingPipeline to evolve the population");
 
     if (fitnessAggregator == null)
       throw new UnsupportedOperationException(
-          "Population must have an FitnessAggregator to evolve the population");
-    
+              "Population must have an FitnessAggregator to evolve the population");
+
     initialSize = Integer.parseInt(e.getAttribute("initialSize"));
     initializePopulation(initialSize);
   }
@@ -117,7 +126,7 @@ public class Population implements Serializable, XMLConfigurable {
       ind.aggregateFitness(fitnessAggregator);
     });
   }
-  
+
   public void reproduce() {
     reproduce(this.size());
   }
@@ -125,10 +134,10 @@ public class Population implements Serializable, XMLConfigurable {
   public void reproduce(int populationSize) {
     breedingPipeline.setSourcePopulation(this);
     List<Individual> newPopulation = IntStream.range(0, populationSize)
-        .mapToObj((i) -> {
-          Individual ind = breedingPipeline.generate();
-          return ind;
-        }).collect(Collectors.toList());
+            .mapToObj((i) -> {
+              Individual ind = breedingPipeline.generate();
+              return ind;
+            }).collect(Collectors.toList());
 
     individuals = newPopulation;
 
@@ -189,7 +198,7 @@ public class Population implements Serializable, XMLConfigurable {
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("Population#" + this.hashCode() + "{\n indFactory=" + indFactory
-        + ",\n agentFactory=" + agentFactory + ",\n individuals=[");
+            + ",\n agentFactory=" + agentFactory + ",\n individuals=[");
     if (individuals != null)
       for (Individual ind : individuals) {
         String fitnessDescription;
