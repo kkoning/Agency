@@ -10,12 +10,13 @@ import java.util.Optional;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import agency.data.ReflectionDataOutput;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import agency.eval.LocalEvaluator;
 import agency.eval.LocalEvaluator;
 import agency.eval.MeanSimpleFitnessAggregator;
 import agency.eval.ShuffledEvaluationGroupFactory;
@@ -107,6 +108,8 @@ public class Config {
     registerClassXMLTag(ShuffledEvaluationGroupFactory.class);
     registerClassXMLTag(LocalEvaluator.class);
     registerClassXMLTag(AgentModelReporter.class);
+
+    registerClassXMLTag(ReflectionDataOutput.class);
 
   }
 
