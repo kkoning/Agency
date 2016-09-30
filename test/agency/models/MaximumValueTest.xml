@@ -39,7 +39,7 @@
 	<!-- Need an Evaluator -->
 	<LocalEvaluator />
 
-	<!-- Test out an AgentModelReporter -->
+	<!-- Test out an DefaultAgentModelReporter -->
 	<AgentModelReporter perStepFile="psf.tsv"
 		summaryFile="sum.tsv" />
 

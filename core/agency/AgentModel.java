@@ -1,5 +1,7 @@
 package agency;
 
+import agency.data.AgencyData;
+
 public interface AgentModel {
 // Agent Models evaluate agents...
 
@@ -50,7 +52,7 @@ public int getMaxSteps();
  *
  * @return An object that contains summary data for this agent model.
  */
-public Object getSummaryData();
+public AgencyData getSummaryData();
 
 /**
  * An object that contains per-step data for this agent model. This should be
@@ -59,5 +61,5 @@ public Object getSummaryData();
  *
  * @return An object that contains per-step data for this agent model.
  */
-public Object getStepData();
+public AgencyData getStepData();
 }

@@ -1,13 +1,13 @@
 package agency;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
 
+import agency.data.AgencyData;
 import agency.data.EnvironmentStatistics;
+import agency.data.ModelPerStepData;
+import agency.data.ModelSummaryData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,25 +17,25 @@ import agency.eval.EvaluationGroupFactory;
 import agency.eval.Evaluator;
 
 public class Environment implements XMLConfigurable, Serializable {
-private static final long serialVersionUID = 3057043882181403186L;
 
-int generation = 0;
-
-String id;
-
-ArrayList<PopulationGroup> populationGroups;
-
+String                 id;
+List<PopulationGroup>  populationGroups;
 EvaluationGroupFactory evaluationGroupFactory;
 AgentModelFactory<?>   agentModelFactory;
 
-AgentModelReporter          agentModelReporter;
+List<ModelSummaryData>      modelSummaryDataOutputs;
+List<ModelPerStepData>      modelPerStepDataOutputs;
 List<EnvironmentStatistics> stats;
 
 transient Evaluator evaluator;
 
+int generation = 0;
+
 public Environment() {
   this.populationGroups = new ArrayList<>();
   this.stats = new ArrayList<>();
+  this.modelSummaryDataOutputs = new ArrayList<>();
+  this.modelPerStepDataOutputs = new ArrayList<>();
 }
 
 @Override
@@ -71,10 +71,10 @@ public void readXMLConfig(Element e) {
         if (agentModelFactory != null)
           throw new UnsupportedOperationException("Population can only have one AgentModelFactory");
         agentModelFactory = (AgentModelFactory<?>) xc;
-      } else if (xc instanceof AgentModelReporter) {
-        if (agentModelReporter != null)
-          throw new UnsupportedOperationException("Population can only have one AgentModelFactory");
-        agentModelReporter = (AgentModelReporter) xc;
+      } else if (xc instanceof ModelPerStepData) {
+        modelPerStepDataOutputs.add((ModelPerStepData) xc);
+      } else if (xc instanceof ModelSummaryData) {
+        modelSummaryDataOutputs.add((ModelSummaryData) xc);
       } else if (xc instanceof EnvironmentStatistics) {
         this.stats.add((EnvironmentStatistics) xc);
       }
@@ -108,6 +108,20 @@ public void writeXMLConfig(Element e) {
   e.appendChild(egfE);
   e.appendChild(amfE);
   e.appendChild(evE);
+
+  // Agent Model Data outputs
+  // Summary
+  for (ModelSummaryData reporter : modelSummaryDataOutputs) {
+    Element element = Config.createUnnamedElement(d,reporter);
+    e.appendChild(element);
+  }
+  // and per-step
+  for (ModelPerStepData reporter : modelPerStepDataOutputs) {
+    Element element = Config.createUnnamedElement(d,reporter);
+    e.appendChild(element);
+  }
+
+
 }
 
 @Override
@@ -130,11 +144,18 @@ public void evolve() {
     });
 
     // Collect data from the agent models
-    if (agentModelReporter != null) { // Data from models is optional here...
-      agentModelReporter.perStepData(generation, eg);
-      agentModelReporter.summaryData(generation, eg);
+    // summary data
+    for (ModelSummaryData reporter : modelSummaryDataOutputs) {
+      AgencyData summaryData = eg.getModel().getSummaryData();
+      UUID modelUUID = eg.getId();
+      reporter.writeSummaryData(generation,modelUUID,summaryData);
     }
-
+    // per-step data
+    for (ModelPerStepData reporter : modelPerStepDataOutputs) {
+      Map<Integer, AgencyData> perStepData = eg.getPerStepData();
+      UUID modelUUID = eg.getId();
+      reporter.writePerStepData(generation,modelUUID,perStepData);
+    }
   });
 
   // Aggregate fitnesses
@@ -179,8 +200,7 @@ public List<PopulationGroup> getPopulationGroups() {
 
 /**
  * @param id
- * @return the PopulationGroup in this environment with the specified id, or
- * null if it does not exist.
+ * @return the PopulationGroup in this environment with the specified id, or null if it does not exist.
  */
 public PopulationGroup getPopulationGroup(String id) {
   if (id == null)
@@ -226,8 +246,7 @@ public int getGeneration() {
 // }
 
 /**
- * @return All the individuals present in this environment, regardless of
- * population.
+ * @return All the individuals present in this environment, regardless of population.
  */
 // Stream<Individual> allIndividuals() {
 // Stream<Individual> toReturn = Stream.empty();

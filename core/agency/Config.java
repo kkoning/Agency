@@ -11,10 +11,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import agency.data.DataOutput;
 import agency.data.DefaultEnvironmentStatistics;
-import agency.data.ReflectionDataOutput;
+import agency.data.DefaultModelPerStepData;
+import agency.data.DefaultModelSummaryData;
 import agency.eval.LocalParallelEvaluator;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -109,9 +110,10 @@ static {
 
   registerClassXMLTag(ShuffledEvaluationGroupFactory.class);
   registerClassXMLTag(LocalEvaluator.class);
-  registerClassXMLTag(AgentModelReporter.class);
+  registerClassXMLTag(DefaultModelPerStepData.class);
+  registerClassXMLTag(DefaultModelSummaryData.class);
 
-  registerClassXMLTag(ReflectionDataOutput.class);
+  registerClassXMLTag(DataOutput.class);
   registerClassXMLTag(DefaultEnvironmentStatistics.class);
   registerClassXMLTag(LocalParallelEvaluator.class);
 

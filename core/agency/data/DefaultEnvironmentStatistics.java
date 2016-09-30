@@ -1,39 +1,19 @@
 package agency.data;
 
 import agency.*;
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Created by liara on 9/26/16.
  */
-public class DefaultEnvironmentStatistics implements XMLConfigurable, EnvironmentStatistics {
-
-ReflectionDataOutput rdo;
-String fileName = "DefaultEnvironmentStatistics.tsv";
-
-@Override
-public void readXMLConfig(Element e) {
-  openFile();
-}
-
-@Override
-public void writeXMLConfig(Element e) {
-
-}
-
-@Override
-public void resumeFromCheckpoint() {
-
-}
-
-private void openFile() {
-  rdo = new ReflectionDataOutput();
-  rdo.outputFileName = this.fileName;
-}
+public class DefaultEnvironmentStatistics extends DataOutput implements EnvironmentStatistics {
 
 @Override
 public void calculate(Environment env) {
@@ -63,13 +43,13 @@ public void calculate(Environment env) {
       d.simpleFitnessMean = stats.getMean();
       d.simpleFitnessSD = stats.getStandardDeviation();
       d.simpleFitnessMax = stats.getMax();
-      rdo.write(d);
+      this.write(d);
     }
 
   }
 }
 
-class Data {
+class Data implements AgencyData {
   Integer generation;
   String  populationGroup;
   String  population;
@@ -78,6 +58,34 @@ class Data {
   Double  simpleFitnessMean;
   Double  simpleFitnessSD;
   Double  simpleFitnessMax;
+
+  @Override
+  public List<String> getHeaders() {
+    List<String> headers = new ArrayList<>();
+    headers.add("generation");
+    headers.add("populationGroup");
+    headers.add("population");
+    headers.add("numIndividuals");
+    headers.add("simpleFitnessMin");
+    headers.add("simpleFitnessMean");
+    headers.add("simpleFitnessSD");
+    headers.add("simpleFitnessMax");
+    return headers;
+  }
+
+  @Override
+  public List<Object> getValues() {
+    List<Object> values = new ArrayList<>();
+    values.add(generation);
+    values.add(populationGroup);
+    values.add(population);
+    values.add(numIndividuals);
+    values.add(simpleFitnessMin);
+    values.add(simpleFitnessMean);
+    values.add(simpleFitnessSD);
+    values.add(simpleFitnessMax);
+    return values;
+  }
 }
 
 

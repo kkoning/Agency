@@ -13,6 +13,7 @@ import agency.Agent;
 import agency.AgentModel;
 import agency.Fitness;
 import agency.Individual;
+import agency.data.AgencyData;
 
 public class EvaluationGroup implements Serializable, Runnable {
 private static final long serialVersionUID = 1922150637452370643L;
@@ -24,14 +25,14 @@ AgentModel model;
 
 // Model data outputs
 Object summaryData;
-Map<Integer, Object> perStepData = new TreeMap<>();
+Map<Integer, AgencyData> perStepData = new TreeMap<>();
 
 
 public Object getSummaryData() {
   return summaryData;
 }
 
-public Map<Integer, Object> getPerStepData() {
+public Map<Integer, AgencyData> getPerStepData() {
   return perStepData;
 }
 
@@ -58,9 +59,9 @@ public void run() {
   for (int step = 0; step < maxSteps; step++) {
 
     // Per-step data; if reported
-    Object o = model.getStepData();
-    if (o != null)
-      perStepData.put(step, o);
+    AgencyData ad = model.getStepData();
+    if (ad != null)
+      perStepData.put(step, ad);
 
     boolean doneEarly = model.step();
     if (doneEarly)

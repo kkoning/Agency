@@ -1,6 +1,10 @@
 package agency.models.simple;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.IntStream;
+
+import agency.data.AgencyData;
 import org.apache.commons.lang3.RandomUtils;
 import agency.Agent;
 import agency.AgentModel;
@@ -13,9 +17,25 @@ public class MaximumValue implements AgentModel {
 
   Double scalingFactor = 1.0;
   
-  public class SummaryData {
+  public class SummaryData implements AgencyData {
     int randomInt;
     String label;
+
+    @Override
+    public List<String> getHeaders() {
+      List<String> headers = new ArrayList<>();
+      headers.add("randomInt");
+      headers.add("label");
+      return headers;
+    }
+
+    @Override
+    public List<Object> getValues() {
+      List<Object> values = new ArrayList<>();
+      values.add(randomInt);
+      values.add(label);
+      return values;
+    }
   }
 
   @Override
@@ -52,7 +72,7 @@ public class MaximumValue implements AgentModel {
   
 
   @Override
-  public Object getSummaryData() {
+  public AgencyData getSummaryData() {
     SummaryData sd = new SummaryData();
     sd.label = "foo";
     sd.randomInt = RandomUtils.nextInt(0, 100_000);
@@ -60,7 +80,7 @@ public class MaximumValue implements AgentModel {
   }
 
   @Override
-  public Object getStepData() {
+  public AgencyData getStepData() {
     SummaryData sd = new SummaryData();
     sd.label = "bar";
     sd.randomInt = RandomUtils.nextInt(0, 100_000);
