@@ -41,7 +41,12 @@ public void readXMLConfig(Element e) {
 }
 
 @Override
-public void writeXMLConfig(Document d, Element e) {
+public void writeXMLConfig(Element e) {
+
+}
+
+@Override
+public void resumeFromCheckpoint() {
 
 }
 
@@ -52,19 +57,39 @@ public void setPrefixLabels(String... prefixLabels) {
     throw new RuntimeException("Prefix labels can only be set once, before output");
 }
 
-private String constructHeaderLine() {
-  StringBuffer sb = new StringBuffer();
-  for (String prefixLabel : prefixLabels) {
-    sb.append(prefixLabel);
-    sb.append(separator);
+public void close() {
+  try {
+    if (out != null)
+      out.flush();
+  } finally {
+    out.close();
   }
-  for (int i = 0; i < fieldLabels.size(); i++) {
-    sb.append(fieldLabels.get(i));
-    // separator on all but last column
-    if (i < (fieldLabels.size() - 1))
-      sb.append(separator);
+}
+
+public void write(Object o, Object... prefixes) {
+  if (!typeDetermined) {
+    this.outputClass = o.getClass();
+    extractFields(this.outputClass);
+    initializeOutput();
+  } else {
+    // if type is determined but fields == null, we're probably resuming from checkpoint.
+    if (fields == null) {
+      extractFields(o.getClass());
+    }
   }
-  return sb.toString();
+
+  // Check to make sure the object is of the correct type.
+  // E.g., we can only consistently write one type of object.
+  if (!o.getClass().equals(outputClass))
+    throw new RuntimeException("ReflectionDataOuput started with class " +
+            outputClass.getCanonicalName() + " but received and object of type " +
+            o.getClass().getCanonicalName());
+
+  // Otherwise, write a line.
+  String line = constructOutputLine(o, prefixes);
+  out.println(line);
+
+
 }
 
 private String constructOutputLine(Object o, Object... prefixes) {
@@ -113,41 +138,20 @@ private void initializeOutput() {
 
 }
 
-public void close() {
-  try {
-    if (out != null)
-      out.flush();
-  } finally {
-    out.close();
+private String constructHeaderLine() {
+  StringBuffer sb = new StringBuffer();
+  for (String prefixLabel : prefixLabels) {
+    sb.append(prefixLabel);
+    sb.append(separator);
   }
-}
-
-public void write(Object o, Object... prefixes) {
-  if (!typeDetermined) {
-    this.outputClass = o.getClass();
-    extractFields(this.outputClass);
-    initializeOutput();
-  } else {
-    // if type is determined but fields == null, we're probably resuming from checkpoint.
-    if (fields == null) {
-      extractFields(o.getClass());
-    }
+  for (int i = 0; i < fieldLabels.size(); i++) {
+    sb.append(fieldLabels.get(i));
+    // separator on all but last column
+    if (i < (fieldLabels.size() - 1))
+      sb.append(separator);
   }
-
-  // Check to make sure the object is of the correct type.
-  // E.g., we can only consistently write one type of object.
-  if (!o.getClass().equals(outputClass))
-    throw new RuntimeException("ReflectionDataOuput started with class " +
-            outputClass.getCanonicalName() + " but received and object of type " +
-            o.getClass().getCanonicalName());
-
-  // Otherwise, write a line.
-  String line = constructOutputLine(o, prefixes);
-  out.println(line);
-
-
+  return sb.toString();
 }
-
 
 private void extractFields(Class<?> c) {
   // Reset these (we might be resuming from a checkpoint?)
@@ -182,7 +186,7 @@ private void extractFields(Class<?> c) {
     } else {
       // Not supported at this time.
       throw new RuntimeException("ReflectionDataOutput can write objects with basic types only (int, double, etc...), not "
-        + f.getName() + " of type " + f.getType().getCanonicalName());
+              + f.getName() + " of type " + f.getType().getCanonicalName());
     }
   }
 }

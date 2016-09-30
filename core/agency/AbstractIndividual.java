@@ -1,18 +1,16 @@
 package agency;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+
 import agency.eval.FitnessAggregator;
 
 public abstract class AbstractIndividual implements Individual {
 	private static final long serialVersionUID = 1451854714980257824L;
 
 	private UUID uuid = UUID.randomUUID();
-	List<UUID> parentIDs = new ArrayList<>(2);
+	List<UUID> parentIDs = Collections.synchronizedList(new ArrayList<>(2));
 	Fitness fitness;
-	List<Fitness> fitnessSamples = new ArrayList<>(5);
+	List<Fitness> fitnessSamples = Collections.synchronizedList(new ArrayList<>(5));
 	
 	@Override
 	public UUID getUUID() {

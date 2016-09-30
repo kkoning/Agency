@@ -21,7 +21,6 @@ import agency.vector.ValueMutator;
 public class Population implements Serializable, XMLConfigurable {
 private static final long serialVersionUID = 4940155716065322170L;
 
-int generation = 0;
 String                        id;
 Integer                       initialSize;
 List<Individual>              individuals;
@@ -29,10 +28,6 @@ IndividualFactory<Individual> indFactory;
 AgentFactory                  agentFactory;
 FitnessAggregator             fitnessAggregator;
 BreedingPipeline              breedingPipeline;
-
-public Population() {
-  this.id = UUID.randomUUID().toString();
-}
 
 public Population(IndividualFactory<? extends Individual> indFactory,
                   AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
@@ -44,6 +39,19 @@ public Population(IndividualFactory<? extends Individual> indFactory,
 
 
   initializePopulation(initialSize);
+}
+
+public Population() {
+  this.id = UUID.randomUUID().toString();
+}
+
+void initializePopulation(int size) {
+  individuals = new ArrayList<>();
+  // fitness = new IdentityHashMap<>();
+  IntStream.range(0, size).forEach(i -> {
+    Individual ind = indFactory.create();
+    individuals.add(ind);
+  });
 }
 
 @Override
@@ -109,7 +117,8 @@ public void readXMLConfig(Element e) {
 }
 
 @Override
-public void writeXMLConfig(Document d, Element e) {
+public void writeXMLConfig(Element e) {
+  Document d = e.getOwnerDocument();
   e.setAttribute("initialSize", initialSize.toString());
   Element indFactoryE = Config.createUnnamedElement(d, indFactory);
   Element agentFactoryE = Config.createUnnamedElement(d, agentFactory);
@@ -119,6 +128,11 @@ public void writeXMLConfig(Document d, Element e) {
   e.appendChild(fitAggE);
   e.appendChild(agentFactoryE);
   e.appendChild(breedPipeE);
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
 }
 
 public void aggregateFitnesses() {
@@ -143,16 +157,16 @@ public void reproduce(int populationSize) {
 
 }
 
-Agent<? extends Individual> createAgent(Individual ind) {
-  return agentFactory.createAgent(ind);
-}
-
 public int size() {
   return individuals.size();
 }
 
 public Stream<Agent<? extends Individual>> allAgents() {
   return individuals.stream().map(i -> createAgent(i));
+}
+
+Agent<? extends Individual> createAgent(Individual ind) {
+  return agentFactory.createAgent(ind);
 }
 
 public Stream<Individual> allIndividuals() {
@@ -173,26 +187,17 @@ public Stream<Agent<? extends Individual>> shuffledAgents() {
   return shuffledIndividuals().map(i -> createAgent(i));
 }
 
-Stream<Individual> shuffledIndividuals() {
-  RandomStream<Individual> rs = new RandomStream<>();
-  return rs.shuffledStream(individuals);
-}
-
-void initializePopulation(int size) {
-  individuals = new ArrayList<>();
-  // fitness = new IdentityHashMap<>();
-  IntStream.range(0, size).forEach(i -> {
-    Individual ind = indFactory.create();
-    individuals.add(ind);
-  });
-}
-
 // @Override
 // public String toString() {
 // return "Population [individuals=" + individuals + ", indFactory=" +
 // indFactory + ", agentFactory="
 // + agentFactory + "]";
 // }
+
+Stream<Individual> shuffledIndividuals() {
+  RandomStream<Individual> rs = new RandomStream<>();
+  return rs.shuffledStream(individuals);
+}
 
 @Override
 public String toString() {
@@ -217,6 +222,4 @@ public String toString() {
 public String getId() {
   return id;
 }
-
-
 }

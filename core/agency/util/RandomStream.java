@@ -9,20 +9,20 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class RandomStream<T> {
-	public Stream<T> randomStream(List<T> source) {
-		Random r = ThreadLocalRandom.current();
-		Stream<T> toReturn = IntStream
-				.generate(() -> r.nextInt(source.size()))
-				.mapToObj(i -> source.get(i));
-		return toReturn;
-	}
-	
-	public Stream<T> shuffledStream(List<T> source) {
-		Random r = ThreadLocalRandom.current();
-		List<T> copy = new ArrayList<>(source.size());
-		copy.addAll(source);
-		Collections.shuffle(copy, r);
-		return copy.stream();
-	}
+public Stream<T> randomStream(List<T> source) {
+  Random r = ThreadLocalRandom.current();
+  Stream<T> toReturn = IntStream
+          .generate(() -> r.nextInt(source.size()))
+          .mapToObj(i -> source.get(i));
+  return toReturn;
+}
+
+public Stream<T> shuffledStream(List<T> source) {
+  Random r = ThreadLocalRandom.current();
+  List<T> copy = new ArrayList<>(source.size());
+  copy.addAll(source);
+  Collections.shuffle(copy, r);
+  return copy.stream();
+}
 
 }

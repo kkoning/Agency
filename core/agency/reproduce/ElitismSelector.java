@@ -15,81 +15,85 @@ import agency.XMLConfigurable;
 
 public class ElitismSelector implements BreedingPipeline, XMLConfigurable {
 
-	Integer numElites;
-	Float proportionElites;
-	
-	List<Individual> elites;
-	int currentPosition = 0;
+Integer numElites;
+Float   proportionElites;
 
-	public ElitismSelector() {
-	}
+List<Individual> elites;
+int currentPosition = 0;
 
-	@Override
-	public void readXMLConfig(Element e) {
-		String numElitesText = e.getAttribute("numElites");
-		String proportionElitesText = e.getAttribute("proportionElites");
-		boolean useNumElites = false;
-		boolean useProportionElites = false;
-		if (numElitesText != null && !numElitesText.isEmpty())
-			useNumElites = true;
-		if (proportionElitesText != null && !proportionElitesText.isEmpty())
-			useProportionElites = true;
-		if (useNumElites && useProportionElites)
-			throw new RuntimeException("Elitism selector cannot simultaneously specify the number AND proportion of elites");
-		if (useNumElites)
-			numElites = Integer.parseInt(numElitesText);
-		if (useProportionElites)
-			proportionElites = Float.parseFloat(proportionElitesText);
-	}
+public ElitismSelector() {
+}
 
-	@Override
-	public void writeXMLConfig(Document doc, Element e) {
-		if (numElites != null)
-			e.setAttribute("numElites", Integer.toString(numElites));
-		else
-			e.setAttribute("proportionElites", Float.toString(proportionElites));
-	}
-	
-	public Optional<Integer> getNumElites() {
-		return Optional.of(numElites);
-	}
+@Override
+public void readXMLConfig(Element e) {
+  String numElitesText = e.getAttribute("numElites");
+  String proportionElitesText = e.getAttribute("proportionElites");
+  boolean useNumElites = false;
+  boolean useProportionElites = false;
+  if (numElitesText != null && !numElitesText.isEmpty())
+    useNumElites = true;
+  if (proportionElitesText != null && !proportionElitesText.isEmpty())
+    useProportionElites = true;
+  if (useNumElites && useProportionElites)
+    throw new RuntimeException("Elitism selector cannot simultaneously specify the number AND proportion of elites");
+  if (useNumElites)
+    numElites = Integer.parseInt(numElitesText);
+  if (useProportionElites)
+    proportionElites = Float.parseFloat(proportionElitesText);
+}
 
-	public void setNumElites(Integer numElites) {
-		this.numElites = numElites;
-		proportionElites = null;
-	}
+@Override
+public void writeXMLConfig(Element e) {
+  if (numElites != null)
+    e.setAttribute("numElites", Integer.toString(numElites));
+  else
+    e.setAttribute("proportionElites", Float.toString(proportionElites));
+}
 
-	public Optional<Float> getProportionElites() {
-		return Optional.of(proportionElites);
-	}
+@Override
+public void resumeFromCheckpoint() {
 
-	public void setProportionElites(Float proportionElites) {
-		this.proportionElites = proportionElites;
-		numElites = null;
-	}
+}
+
+public Optional<Integer> getNumElites() {
+  return Optional.of(numElites);
+}
+
+public void setNumElites(Integer numElites) {
+  this.numElites = numElites;
+  proportionElites = null;
+}
+
+public Optional<Float> getProportionElites() {
+  return Optional.of(proportionElites);
+}
+
+public void setProportionElites(Float proportionElites) {
+  this.proportionElites = proportionElites;
+  numElites = null;
+}
 
 
-	@Override
-	public Individual generate() {
-		// If we need more, just cycle
-		if (currentPosition >= elites.size())
-			currentPosition = 0;
-		
-		Individual toReturn = elites.get(currentPosition);
-		return SerializationUtils.clone(toReturn);
-	}
+@Override
+public Individual generate() {
+  // If we need more, just cycle
+  if (currentPosition >= elites.size())
+    currentPosition = 0;
 
-	@Override
-	public void setSourcePopulation(Population pop) {
-		Integer numElites = this.numElites;
-		if (numElites == null)
-			numElites = (int) (pop.size() * proportionElites);
-		List<Individual> allIndividuals = pop.allIndividuals().collect(Collectors.toList());
-		Collections.sort(allIndividuals,new FitnessComparator());
-		elites = allIndividuals.stream().limit(numElites).collect(Collectors.toList());
-		currentPosition = 0;
-	}
-	
-	
-	
+  Individual toReturn = elites.get(currentPosition);
+  return SerializationUtils.clone(toReturn);
+}
+
+@Override
+public void setSourcePopulation(Population pop) {
+  Integer numElites = this.numElites;
+  if (numElites == null)
+    numElites = (int) (pop.size() * proportionElites);
+  List<Individual> allIndividuals = pop.allIndividuals().collect(Collectors.toList());
+  Collections.sort(allIndividuals, new FitnessComparator());
+  elites = allIndividuals.stream().limit(numElites).collect(Collectors.toList());
+  currentPosition = 0;
+}
+
+
 }

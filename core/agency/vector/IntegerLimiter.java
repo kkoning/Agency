@@ -7,72 +7,76 @@ import agency.Config;
 
 /**
  * TODO: Better error handing, more documentation
- * 
- * @author kkoning
  *
+ * @author kkoning
  */
 public class IntegerLimiter implements ValueLimiter<Integer> {
 
-	Integer floor;
-	Integer ceiling;
+Integer floor;
+Integer ceiling;
 
-	public IntegerLimiter() {
-		super();
-	}
+public IntegerLimiter() {
+  super();
+}
 
-	public IntegerLimiter(Integer floor, Integer ceiling) {
-		super();
-		this.floor = floor;
-		this.ceiling = ceiling;
-	}
+public IntegerLimiter(Integer floor, Integer ceiling) {
+  super();
+  this.floor = floor;
+  this.ceiling = ceiling;
+}
 
-	@Override
-	public void readXMLConfig(Element e) {
-		try {
-			floor = Integer.parseInt(e.getAttribute("floor"));
-		} catch (Exception ex) {
-			// TODO
-		}
-		try {
-			ceiling = Integer.parseInt(e.getAttribute("ceiling"));
-		} catch (Exception ex) {
-			// TODO
-		}
-	}
+@Override
+public void readXMLConfig(Element e) {
+  try {
+    floor = Integer.parseInt(e.getAttribute("floor"));
+  } catch (Exception ex) {
+    // TODO
+  }
+  try {
+    ceiling = Integer.parseInt(e.getAttribute("ceiling"));
+  } catch (Exception ex) {
+    // TODO
+  }
+}
 
-	@Override
-	public void writeXMLConfig(Document d, Element e) {
-		if (floor != null)
-			e.setAttribute("floor", floor.toString());
-		if (ceiling != null)
-			e.setAttribute("ceiling", ceiling.toString());
-	}
+@Override
+public void writeXMLConfig(Element e) {
+  if (floor != null)
+    e.setAttribute("floor", floor.toString());
+  if (ceiling != null)
+    e.setAttribute("ceiling", ceiling.toString());
+}
 
-	@Override
-	public Integer limit(Integer value) {
-		if (ceiling != null)
-			if (value > ceiling)
-				return ceiling;
-		if (floor != null)
-			if (value < floor)
-				return floor;
-		return value;
-	}
+@Override
+public void resumeFromCheckpoint() {
 
-	public Integer getFloor() {
-		return floor;
-	}
+}
 
-	public void setFloor(Integer floor) {
-		this.floor = floor;
-	}
+@Override
+public Integer limit(Integer value) {
+  if (ceiling != null)
+    if (value > ceiling)
+      return ceiling;
+  if (floor != null)
+    if (value < floor)
+      return floor;
+  return value;
+}
 
-	public Integer getCeiling() {
-		return ceiling;
-	}
+public Integer getFloor() {
+  return floor;
+}
 
-	public void setCeiling(Integer ceiling) {
-		this.ceiling = ceiling;
-	}
+public void setFloor(Integer floor) {
+  this.floor = floor;
+}
+
+public Integer getCeiling() {
+  return ceiling;
+}
+
+public void setCeiling(Integer ceiling) {
+  this.ceiling = ceiling;
+}
 
 }

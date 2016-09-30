@@ -11,39 +11,43 @@ import agency.Config;
 
 /**
  * TODO: Better error handing, more documentation
- * 
- * @author kkoning
  *
+ * @author kkoning
  */
 public class GaussianFloatMutator implements ValueMutator<Float> {
-	
-	float sd;
 
-	public GaussianFloatMutator() {
-		super();
-	}
+float sd;
 
-	public GaussianFloatMutator(float sd) {
-		super();
-		this.sd = sd;
-	}
+public GaussianFloatMutator() {
+  super();
+}
 
-	@Override
-	public void readXMLConfig(Element e) {
-		sd = Float.parseFloat(e.getAttribute("sd"));
-	}
+public GaussianFloatMutator(float sd) {
+  super();
+  this.sd = sd;
+}
 
-	@Override
-	public void writeXMLConfig(Document d, Element e) {
-		e.setAttribute("sd", Float.toString(sd));
-	}
+@Override
+public void readXMLConfig(Element e) {
+  sd = Float.parseFloat(e.getAttribute("sd"));
+}
 
-	@Override
-	public Float mutate(Float value) {
-		Random r = ThreadLocalRandom.current();
-		double z = r.nextGaussian();
-		return (float) (value + (z*sd));
-	}
+@Override
+public void writeXMLConfig(Element e) {
+  e.setAttribute("sd", Float.toString(sd));
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
+}
+
+@Override
+public Float mutate(Float value) {
+  Random r = ThreadLocalRandom.current();
+  double z = r.nextGaussian();
+  return (float) (value + (z * sd));
+}
 
 
 }

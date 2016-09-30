@@ -28,7 +28,7 @@ ArrayList<PopulationGroup> populationGroups;
 EvaluationGroupFactory evaluationGroupFactory;
 AgentModelFactory<?>   agentModelFactory;
 
-AgentModelReporter agentModelReporter;
+AgentModelReporter          agentModelReporter;
 List<EnvironmentStatistics> stats;
 
 transient Evaluator evaluator;
@@ -96,7 +96,8 @@ public void readXMLConfig(Element e) {
 }
 
 @Override
-public void writeXMLConfig(Document d, Element e) {
+public void writeXMLConfig(Element e) {
+  Document d = e.getOwnerDocument();
   for (PopulationGroup popGroup : populationGroups) {
     Element popGroupE = Config.createNamedElement(d, popGroup, "PopulationGroup");
     e.appendChild(popGroupE);
@@ -107,6 +108,11 @@ public void writeXMLConfig(Document d, Element e) {
   e.appendChild(egfE);
   e.appendChild(amfE);
   e.appendChild(evE);
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
 }
 
 public void evolve() {
@@ -247,11 +253,6 @@ class PopulationMap extends TreeMap<Integer, Population> {
   private static final long serialVersionUID = 4508501876898154219L;
   int individualIndex = 0;
 
-  void addPopulation(Population pop) {
-    put(individualIndex, pop);
-    individualIndex += pop.size();
-  }
-
   int totalIndividuals() {
     return individualIndex;
   }
@@ -259,6 +260,11 @@ class PopulationMap extends TreeMap<Integer, Population> {
   void addPopulations(Collection<Population> pops) {
     for (Population pop : pops)
       addPopulation(pop);
+  }
+
+  void addPopulation(Population pop) {
+    put(individualIndex, pop);
+    individualIndex += pop.size();
   }
 
   Individual getIndividual(Integer position) {

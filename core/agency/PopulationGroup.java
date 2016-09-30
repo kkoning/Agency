@@ -57,6 +57,23 @@ public void readXMLConfig(Element e) {
 
 }
 
+@Override
+public void writeXMLConfig(Element e) {
+  Document d = e.getOwnerDocument();
+  e.setAttribute("id", id);
+  e.setAttribute("totalSize", totalPopulationSize.toString());
+  for (Population pop : populations) {
+    Element subPop = Config.createUnnamedElement(d, pop);
+    e.appendChild(subPop);
+  }
+
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
+}
+
 public Stream<Agent<? extends Individual>> shuffledAgentStream() {
   return Stream.generate(new ShuffledAgentStreamHelper());
 }
@@ -68,6 +85,35 @@ public Stream<Agent<? extends Individual>> shuffledAgentStream() {
  */
 void addPopulationGroup(Population population) {
   this.populations.add(population);
+}
+
+public void aggregateFitnesses() {
+  for (Population pop : populations) {
+    pop.aggregateFitnesses(); // Parallelization inside here
+  }
+}
+
+public void reproduce() {
+  for (Population pop : populations) {
+    pop.reproduce();
+  }
+}
+
+public List<Population> getPopulations() {
+  return populations;
+}
+
+public String getId() {
+  return id;
+}
+
+public static class IndividualPopulationPair {
+  Individual ind;
+  Population p;
+
+  public Agent<? extends Individual> newAgent() {
+    return p.createAgent(ind);
+  }
 }
 
 class ShuffledAgentStreamHelper implements Supplier<Agent<? extends Individual>> {
@@ -98,46 +144,6 @@ class ShuffledAgentStreamHelper implements Supplier<Agent<? extends Individual>>
     }
 
   }
-}
-
-public static class IndividualPopulationPair {
-  Individual ind;
-  Population p;
-
-  public Agent<? extends Individual> newAgent() {
-    return p.createAgent(ind);
-  }
-}
-
-public void aggregateFitnesses() {
-  for (Population pop : populations) {
-    pop.aggregateFitnesses(); // Parallelization inside here
-  }
-}
-
-public void reproduce() {
-  for (Population pop : populations) {
-    pop.reproduce();
-  }
-}
-
-public List<Population> getPopulations() {
-  return populations;
-}
-
-@Override
-public void writeXMLConfig(Document d, Element e) {
-  e.setAttribute("id", id);
-  e.setAttribute("totalSize", totalPopulationSize.toString());
-  for (Population pop : populations) {
-    Element subPop = Config.createUnnamedElement(d, pop);
-    e.appendChild(subPop);
-  }
-
-}
-
-public String getId() {
-  return id;
 }
 
 

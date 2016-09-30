@@ -11,39 +11,43 @@ import agency.Config;
 
 /**
  * TODO: Better error handing, more documentation
- * 
- * @author kkoning
  *
+ * @author kkoning
  */
 public class GaussianIntegerMutator implements ValueMutator<Integer> {
-	
-	double sd;
 
-	public GaussianIntegerMutator() {
-		super();
-	}
+double sd;
 
-	public GaussianIntegerMutator(double sd) {
-		super();
-		this.sd = sd;
-	}
+public GaussianIntegerMutator() {
+  super();
+}
 
-	@Override
-	public void readXMLConfig(Element e) {
-		sd = Double.parseDouble(e.getAttribute("sd"));
-	}
+public GaussianIntegerMutator(double sd) {
+  super();
+  this.sd = sd;
+}
 
-	@Override
-	public void writeXMLConfig(Document d, Element e) {
-		e.setAttribute("sd", Double.toString(sd));
-	}
+@Override
+public void readXMLConfig(Element e) {
+  sd = Double.parseDouble(e.getAttribute("sd"));
+}
 
-	@Override
-	public Integer mutate(Integer value) {
-		Random r = ThreadLocalRandom.current();
-		double z = r.nextGaussian();
-		return (int) (value + (z*sd));
-	}
+@Override
+public void writeXMLConfig(Element e) {
+  e.setAttribute("sd", Double.toString(sd));
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
+}
+
+@Override
+public Integer mutate(Integer value) {
+  Random r = ThreadLocalRandom.current();
+  double z = r.nextGaussian();
+  return (int) (value + (z * sd));
+}
 
 
 }

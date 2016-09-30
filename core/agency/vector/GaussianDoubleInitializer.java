@@ -11,43 +11,47 @@ import agency.Config;
 
 /**
  * TODO: Better error handing, more documentation
- * 
- * @author kkoning
  *
+ * @author kkoning
  */
 public class GaussianDoubleInitializer implements ValueInitializer<Double> {
-	
-	double center;
-	double sd;
 
-	public GaussianDoubleInitializer() {
-		super();
-	}
+double center;
+double sd;
 
-	public GaussianDoubleInitializer(double center, double sd) {
-		super();
-		this.center = center;
-		this.sd = sd;
-	}
+public GaussianDoubleInitializer() {
+  super();
+}
 
-	@Override
-	public void readXMLConfig(Element e) {
-		center = Double.parseDouble(e.getAttribute("center"));
-		sd = Double.parseDouble(e.getAttribute("sd"));
-	}
+public GaussianDoubleInitializer(double center, double sd) {
+  super();
+  this.center = center;
+  this.sd = sd;
+}
 
-	@Override
-	public void writeXMLConfig(Document d, Element e) {
-		e.setAttribute("center", Double.toString(center));
-		e.setAttribute("sd", Double.toString(sd));
-	}
+@Override
+public void readXMLConfig(Element e) {
+  center = Double.parseDouble(e.getAttribute("center"));
+  sd = Double.parseDouble(e.getAttribute("sd"));
+}
 
-	@Override
-	public Double create() {
-		Random r = ThreadLocalRandom.current();
-		double z = r.nextGaussian();
-		return (double) (center + (z*sd));
-	}
+@Override
+public void writeXMLConfig(Element e) {
+  e.setAttribute("center", Double.toString(center));
+  e.setAttribute("sd", Double.toString(sd));
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
+}
+
+@Override
+public Double create() {
+  Random r = ThreadLocalRandom.current();
+  double z = r.nextGaussian();
+  return (double) (center + (z * sd));
+}
 
 
 }

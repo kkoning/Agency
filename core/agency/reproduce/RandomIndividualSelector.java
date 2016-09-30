@@ -13,31 +13,36 @@ import agency.XMLConfigurable;
 
 public class RandomIndividualSelector implements BreedingPipeline, XMLConfigurable {
 
-	Population pop;
-	
-	transient Stream<Individual> popStream;
-	transient Iterator<Individual> i;
-	
-	@Override
-	public void setSourcePopulation(Population pop) {
-		this.pop = pop;
-		popStream = pop.randomIndividuals();
-		i = popStream.iterator();
-	}
-	
-	@Override
-	public Individual generate() {
-		return SerializationUtils.clone(i.next());
-	}
+Population pop;
 
-	@Override
-	public void readXMLConfig(Element e) {
-		// No config nencessary
-	}
+transient Stream<Individual>   popStream;
+transient Iterator<Individual> i;
 
-	@Override
-	public void writeXMLConfig(Document doc, Element e) {
-		// No config nencessary
-	}
+@Override
+public Individual generate() {
+  return SerializationUtils.clone(i.next());
+}
+
+@Override
+public void setSourcePopulation(Population pop) {
+  this.pop = pop;
+  popStream = pop.randomIndividuals();
+  i = popStream.iterator();
+}
+
+@Override
+public void readXMLConfig(Element e) {
+  // No config nencessary
+}
+
+@Override
+public void writeXMLConfig(Element e) {
+  // No config nencessary
+}
+
+@Override
+public void resumeFromCheckpoint() {
+
+}
 
 }

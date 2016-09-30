@@ -11,59 +11,63 @@ import agency.Config;
 
 /**
  * TODO: Better error handing, more documentation
- * 
- * @author kkoning
  *
+ * @author kkoning
  */
 public class FlatIntegerInitializer implements ValueInitializer<Integer> {
-	
-	Integer floor;
-	Integer ceiling;
 
-	public FlatIntegerInitializer() {
-		super();
-	}
+Integer floor;
+Integer ceiling;
 
-	public FlatIntegerInitializer(Integer floor, Integer ceiling) {
-		super();
-		this.floor = floor;
-		this.ceiling = ceiling;
-	}
+public FlatIntegerInitializer() {
+  super();
+}
 
-	@Override
-	public void readXMLConfig(Element e) {
-		floor = Integer.parseInt(e.getAttribute("floor"));
-		ceiling = Integer.parseInt(e.getAttribute("ceiling"));
-	}
+public FlatIntegerInitializer(Integer floor, Integer ceiling) {
+  super();
+  this.floor = floor;
+  this.ceiling = ceiling;
+}
 
-	@Override
-	public void writeXMLConfig(Document d, Element e) {
-		e.setAttribute("floor", floor.toString());
-		e.setAttribute("ceiling", ceiling.toString());
-	}
+@Override
+public void readXMLConfig(Element e) {
+  floor = Integer.parseInt(e.getAttribute("floor"));
+  ceiling = Integer.parseInt(e.getAttribute("ceiling"));
+}
 
-	@Override
-	public Integer create() {
-		Random r = ThreadLocalRandom.current();
-		int range = ceiling - floor;
-		int value = floor + r.nextInt(range);
-		return value;
-	}
+@Override
+public void writeXMLConfig(Element e) {
+  e.setAttribute("floor", floor.toString());
+  e.setAttribute("ceiling", ceiling.toString());
+}
 
-	public Integer getFloor() {
-		return floor;
-	}
+@Override
+public void resumeFromCheckpoint() {
 
-	public void setFloor(Integer floor) {
-		this.floor = floor;
-	}
+}
 
-	public Integer getCeiling() {
-		return ceiling;
-	}
+@Override
+public Integer create() {
+  Random r = ThreadLocalRandom.current();
+  int range = ceiling - floor;
+  int value = floor + r.nextInt(range);
+  return value;
+}
 
-	public void setCeiling(Integer ceiling) {
-		this.ceiling = ceiling;
-	}
+public Integer getFloor() {
+  return floor;
+}
+
+public void setFloor(Integer floor) {
+  this.floor = floor;
+}
+
+public Integer getCeiling() {
+  return ceiling;
+}
+
+public void setCeiling(Integer ceiling) {
+  this.ceiling = ceiling;
+}
 
 }

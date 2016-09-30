@@ -21,7 +21,12 @@ public void readXMLConfig(Element e) {
 }
 
 @Override
-public void writeXMLConfig(Document d, Element e) {
+public void writeXMLConfig(Element e) {
+
+}
+
+@Override
+public void resumeFromCheckpoint() {
 
 }
 

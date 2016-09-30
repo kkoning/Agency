@@ -6,5 +6,5 @@ import agency.Fitness;
 import agency.XMLConfigurable;
 
 public interface FitnessAggregator extends XMLConfigurable {
-	Fitness reduce(Stream<Fitness> fitnesses);
+Fitness reduce(Stream<Fitness> fitnesses);
 }

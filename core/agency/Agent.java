@@ -10,16 +10,17 @@ package agency;
  * the instance of individual, that state would be shared across several agent
  * simulations simultaneously. Instead, it is important that each agent model be
  * independent.
- * 
+ * <p>
  * One way to think of this is of an Agent as like a firm, and an Individual is
  * like the CEO of that firm.
- * 
- * @author kkoning
  *
  * @param <T>
+ * @author kkoning
  */
 public interface Agent<T extends Individual> {
-  public T getManager();
-  public void setManager(T ind);
-  public void setModel(AgentModel model);
+public T getManager();
+
+public void setManager(T ind);
+
+public void setModel(AgentModel model);
 }
