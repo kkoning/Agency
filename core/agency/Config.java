@@ -11,7 +11,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import agency.data.DefaultEnvironmentStatistics;
 import agency.data.ReflectionDataOutput;
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -110,6 +112,7 @@ public class Config {
     registerClassXMLTag(AgentModelReporter.class);
 
     registerClassXMLTag(ReflectionDataOutput.class);
+    registerClassXMLTag(DefaultEnvironmentStatistics.class);
 
   }
 
