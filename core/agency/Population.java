@@ -207,7 +207,7 @@ public String toString() {
   if (individuals != null)
     for (Individual ind : individuals) {
       String fitnessDescription;
-      Optional<Fitness> fit = ind.getFitness();
+      Optional<Fitness> fit = Optional.of(ind.getFitness());
       if (fit.isPresent())
         fitnessDescription = fit.get().toString();
       else

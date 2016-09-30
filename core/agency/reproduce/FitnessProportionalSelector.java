@@ -62,7 +62,7 @@ public void setSourcePopulation(Population pop) {
   boolean haveWarnedIfEmpty = false;
   while (i.hasNext()) {
     Individual ind = i.next();
-    Optional<Fitness> opFit = ind.getFitness();
+    Optional<Fitness> opFit = Optional.of(ind.getFitness());
     SimpleFitness fit = null;
     if (!opFit.isPresent()) {
       if (!haveWarnedIfEmpty) {

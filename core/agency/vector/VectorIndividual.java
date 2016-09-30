@@ -63,7 +63,7 @@ public class VectorIndividual<T> extends AbstractIndividual {
     }
 
     sb.append("]");
-    if (this.getFitness().isPresent())
+    if (this.getFitness() != null)
       sb.append(",fit=" + this.getFitness());
 
     return sb.toString();
