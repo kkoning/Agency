@@ -4,26 +4,50 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+import agency.XMLConfigurable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import agency.Config;
 import agency.Individual;
 import agency.Population;
 import agency.reproduce.BreedingPipeline;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class VectorCrossoverPipeline implements BreedingPipeline {
 
 BreedingPipeline source;
+double crossoverProb = 0.2;
 VectorIndividual<?> otherInd = null;
 
 @Override
 public void readXMLConfig(Element e) {
-  Optional<Element> sourceEOp = Config.getChildElementWithTag(e, "Source");
-  if (!sourceEOp.isPresent())
-    throw new IllegalArgumentException(
-            "A VectorCrossoverPipeline must have exactly one BreedingPipeline Source");
 
-  source = (BreedingPipeline) Config.initializeXMLConfigurable(sourceEOp.get());
+  NodeList nl = e.getChildNodes();
+  for (int i = 0; i < nl.getLength(); i++) {
+    Node node = nl.item(i);
+    if (node instanceof Element) {
+      Element child = (Element) node;
+      XMLConfigurable xc = Config.initializeXMLConfigurable(child);
+
+      if (xc instanceof BreedingPipeline) {
+        if (source != null) // Can only have one source of individuals
+          throw new UnsupportedOperationException("VectorCrossoverPipeline cannot have more than one source BreedingPipeline");
+        source = (BreedingPipeline) xc;
+      }
+
+    }
+  }
+
+  if (source == null)
+    throw new UnsupportedOperationException("VectorCrossoverPipeline must have a source BreedingPipeline");
+
+  try {
+    crossoverProb = Double.parseDouble(e.getAttribute("crossoverProb"));
+  } catch (Exception ex) {
+    // TODO
+  }
+
 }
 
 @Override
@@ -35,7 +59,7 @@ public void writeXMLConfig(Element e) {
 
 @Override
 public void resumeFromCheckpoint() {
-
+  // Should be unnecessary; everything should be serializable.
 }
 
 @Override
@@ -45,6 +69,12 @@ public Individual generate() {
     otherInd = null;
     return toReturn;
   }
+
+  // Crossover is not gauranteed
+  double crossoverDice = ThreadLocalRandom.current().nextDouble();
+  boolean doCrossover = (crossoverDice < this.crossoverProb);
+  if (!doCrossover)
+    return source.generate();
 
   Random r = ThreadLocalRandom.current();
 
