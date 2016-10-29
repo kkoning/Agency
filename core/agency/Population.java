@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import agency.data.PopulationData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -28,6 +29,7 @@ IndividualFactory<Individual> indFactory;
 AgentFactory                  agentFactory;
 FitnessAggregator             fitnessAggregator;
 BreedingPipeline              breedingPipeline;
+List<PopulationData>          populationDataOutputs;
 
 public Population(IndividualFactory<? extends Individual> indFactory,
                   AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
@@ -43,6 +45,7 @@ public Population(IndividualFactory<? extends Individual> indFactory,
 
 public Population() {
   this.id = UUID.randomUUID().toString();
+  populationDataOutputs = new ArrayList<>();
 }
 
 void initializePopulation(int size) {
@@ -89,6 +92,9 @@ public void readXMLConfig(Element e) {
           throw new UnsupportedOperationException(
                   "Population cannot have more than one FitnessAggregator");
         fitnessAggregator = (FitnessAggregator) xc;
+      } else if (xc instanceof PopulationData) {
+        PopulationData pd = (PopulationData) xc;
+        populationDataOutputs.add(pd);
       } else {
         throw new UnsupportedOperationException("Unrecognized element in Population");
       }
@@ -128,6 +134,16 @@ public void writeXMLConfig(Element e) {
   e.appendChild(fitAggE);
   e.appendChild(agentFactoryE);
   e.appendChild(breedPipeE);
+
+  for (PopulationData popData : populationDataOutputs) {
+    Element pde = Config.createUnnamedElement(d, popData);
+    e.appendChild(pde);
+  }
+
+}
+
+public List<PopulationData> getPopulationDataOutputs() {
+  return populationDataOutputs;
 }
 
 @Override
