@@ -4,10 +4,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Stream;
 
-import agency.data.AgencyData;
-import agency.data.EnvironmentStatistics;
-import agency.data.ModelPerStepData;
-import agency.data.ModelSummaryData;
+import agency.data.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -112,12 +109,12 @@ public void writeXMLConfig(Element e) {
   // Agent Model Data outputs
   // Summary
   for (ModelSummaryData reporter : modelSummaryDataOutputs) {
-    Element element = Config.createUnnamedElement(d,reporter);
+    Element element = Config.createUnnamedElement(d, reporter);
     e.appendChild(element);
   }
   // and per-step
   for (ModelPerStepData reporter : modelPerStepDataOutputs) {
-    Element element = Config.createUnnamedElement(d,reporter);
+    Element element = Config.createUnnamedElement(d, reporter);
     e.appendChild(element);
   }
 
@@ -148,13 +145,13 @@ public void evolve() {
     for (ModelSummaryData reporter : modelSummaryDataOutputs) {
       AgencyData summaryData = eg.getModel().getSummaryData();
       UUID modelUUID = eg.getId();
-      reporter.writeSummaryData(generation,modelUUID,summaryData);
+      reporter.writeSummaryData(generation, modelUUID, summaryData);
     }
     // per-step data
     for (ModelPerStepData reporter : modelPerStepDataOutputs) {
       Map<Integer, AgencyData> perStepData = eg.getPerStepData();
       UUID modelUUID = eg.getId();
-      reporter.writePerStepData(generation,modelUUID,perStepData);
+      reporter.writePerStepData(generation, modelUUID, perStepData);
     }
   });
 
@@ -162,6 +159,15 @@ public void evolve() {
   for (PopulationGroup popGroup : populationGroups) {
     popGroup.aggregateFitnesses(); // Parallelization inside here
   }
+
+  // Do statistics on populations
+  populationGroups.parallelStream().forEach(pg -> {
+    pg.getPopulations().parallelStream().forEach(p -> {
+      for (PopulationData pdo : p.getPopulationDataOutputs()) {
+        pdo.writePopulationData(generation, p);
+      }
+    });
+  });
 
   // TODO: Balance populations
 
