@@ -11,10 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import agency.data.DataOutput;
-import agency.data.DefaultEnvironmentStatistics;
-import agency.data.DefaultModelPerStepData;
-import agency.data.DefaultModelSummaryData;
+import agency.data.*;
 import agency.eval.LocalParallelEvaluator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,8 +46,8 @@ import agency.vector.VectorRange;
 public class Config {
 public static Map<String, Class<? extends XMLConfigurable>> classXMLTagNames;
 public static Map<Class<? extends XMLConfigurable>, String> xmlTagNameClass;
-static DocumentBuilderFactory docFactory;
-static DocumentBuilder        docBuilder;
+static        DocumentBuilderFactory                        docFactory;
+static        DocumentBuilder                               docBuilder;
 
 /*
  * To make model configuration files less verbose, Agency allows a number of
@@ -112,6 +109,7 @@ static {
   registerClassXMLTag(LocalEvaluator.class);
   registerClassXMLTag(DefaultModelPerStepData.class);
   registerClassXMLTag(DefaultModelSummaryData.class);
+  registerClassXMLTag(DefaultVectorIndividualData.class);
 
   registerClassXMLTag(DataOutput.class);
   registerClassXMLTag(DefaultEnvironmentStatistics.class);
@@ -156,10 +154,11 @@ public static Element createNamedElement(Document doc, XMLConfigurable xc, Strin
 }
 
 /**
- * @param e   The parent element
- * @param tag The tag name, i.e., &lt;foo&gt;
- * @return Possibly a single child element with the specified tag. Throws an
- * exception if there are multiple tags.
+ * @param e
+ *         The parent element
+ * @param tag
+ *         The tag name, i.e., &lt;foo&gt;
+ * @return Possibly a single child element with the specified tag. Throws an exception if there are multiple tags.
  */
 public static Optional<Element> getChildElementWithTag(Element e, String tag) {
   List<Element> elements = getChildElementsWithTag(e, tag);
@@ -172,8 +171,10 @@ public static Optional<Element> getChildElementWithTag(Element e, String tag) {
 }
 
 /**
- * @param e   The parent element
- * @param tag The tag name, i.e., &lt;foo&gt;
+ * @param e
+ *         The parent element
+ * @param tag
+ *         The tag name, i.e., &lt;foo&gt;
  * @return A (possibly empty) list of all child elements of the specified tag.
  */
 public static List<Element> getChildElementsWithTag(Element e, String tag) {
