@@ -28,7 +28,7 @@ transient private Lock         writeLock;
 transient private CSVPrinter   csvOut;
 
 public DataOutput(String outputFilename) {
-  this(outputFilename,CSVFormat.DEFAULT);
+  this(outputFilename, CSVFormat.DEFAULT);
 }
 
 public DataOutput(String outputFilename, CSVFormat format) {
@@ -55,9 +55,23 @@ public void setPrefixHeaders(String[] headers) {
 
 
 public void write(AgencyData ad, Object... prefixes) {
+
+  /*
+   * Write the header if it has not yet been written.
+   */
   if (!headersOutput) {
-    writeHeaders(ad);
-    headersOutput = true;
+    // First (redundant) check improves performance by avoiding the use of the lock
+    // after the headers have been clearly output.
+    try {
+      writeLock.lock();
+      // Check again, otherwise the check is outside the lock.
+      if (!headersOutput) {
+        writeHeaders(ad);
+        headersOutput = true;
+      }
+    } finally {
+      writeLock.unlock();
+    }
   }
 
   // Check to make sure prefixes sizes match, throw error if not.
