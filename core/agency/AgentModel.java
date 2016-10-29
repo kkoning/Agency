@@ -12,7 +12,8 @@ public interface AgentModel {
  * involve a series of if/else statements checking the agent class with the
  * "instanceof" operator.
  *
- * @param agent The agent to add
+ * @param agent
+ *         The agent to add
  */
 public void addAgent(Agent<? extends Individual> agent);
 
@@ -32,14 +33,12 @@ public Fitness getFitness(Agent<? extends Individual> agent);
  * Steps the model.  This function is typically called by an evaluator, which may
  * also collect data between steps.
  *
- * @return true if this model must be stepped again to complete analysis,
- * false otherwise.
+ * @return true if this model must be stepped again to complete analysis, false otherwise.
  */
 public boolean step();
 
 /**
- * @return The maximum number of times that an evaluator should step this
- * model.
+ * @return The maximum number of times that an evaluator should step this model.
  */
 public int getMaxSteps();
 

@@ -37,7 +37,8 @@ public EvaluationManager() {
  * by individual, and then flattening to an aggregate (e.g., average)
  * fitness.
  *
- * @param env The environment to evaluate
+ * @param env
+ *         The environment to evaluate
  */
 public void evaluate(Environment env) {
   EvaluationGroupFactory egf = env.getEvaluationGroupFactory();

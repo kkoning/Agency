@@ -7,10 +7,10 @@ import agency.Population;
 
 public abstract class AbstractSelector implements Selector {
 
-	Stream<Individual> sourceStream;
-	
-	public AbstractSelector(Population pop) {
-		sourceStream = pop.allIndividuals();
-	}
+Stream<Individual> sourceStream;
+
+public AbstractSelector(Population pop) {
+  sourceStream = pop.allIndividuals();
+}
 
 }

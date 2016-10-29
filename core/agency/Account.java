@@ -25,9 +25,12 @@ public Account(double startingBalance) {
  * Convenience method for processing payments between accounts which is
  * automatically balanced.
  *
- * @param source      The source of the funds.
- * @param destination The account where the funds are deposited
- * @param amount      The amount of the transaction
+ * @param source
+ *         The source of the funds.
+ * @param destination
+ *         The account where the funds are deposited
+ * @param amount
+ *         The amount of the transaction
  */
 public static void payment(Account source, Account destination, double amount) throws PaymentException {
   source.pay(amount);
@@ -41,9 +44,10 @@ public void receive(double amount) {
 /**
  * Pays the specified amount from this account.
  *
- * @param amount The amount this account is decreased
- * @throws PaymentException if balanceRestricted is true and the payment would cause the
- *                          account to go negative.
+ * @param amount
+ *         The amount this account is decreased
+ * @throws PaymentException
+ *         if balanceRestricted is true and the payment would cause the account to go negative.
  */
 public void pay(double amount) throws PaymentException {
   if (balanceRestricted) {

@@ -16,7 +16,7 @@ public DefaultModelSummaryData() {
 @Override
 public void writeSummaryData(int generation, UUID modelUUID, AgencyData data) {
   if (data != null)
-    write(data,generation,modelUUID);
+    write(data, generation, modelUUID);
 }
 
 }

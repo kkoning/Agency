@@ -15,76 +15,76 @@ import agency.vector.VectorIndividual;
 
 public class MaximumValue implements AgentModel {
 
-  Double scalingFactor = 1.0;
-  
-  public class SummaryData implements AgencyData {
-    int randomInt;
-    String label;
+Double scalingFactor = 1.0;
 
-    @Override
-    public List<String> getHeaders() {
-      List<String> headers = new ArrayList<>();
-      headers.add("randomInt");
-      headers.add("label");
-      return headers;
-    }
+public class SummaryData implements AgencyData {
+  int    randomInt;
+  String label;
 
-    @Override
-    public List<Object> getValues() {
-      List<Object> values = new ArrayList<>();
-      values.add(randomInt);
-      values.add(label);
-      return values;
-    }
+  @Override
+  public List<String> getHeaders() {
+    List<String> headers = new ArrayList<>();
+    headers.add("randomInt");
+    headers.add("label");
+    return headers;
   }
 
   @Override
-  public Fitness getFitness(Agent<? extends Individual> agent) {
-    
-    // The agent is assumed to have a VectorInvididual<Integer>
-    VectorIndividual<Integer> ind = (VectorIndividual<Integer>) agent
-        .getManager();
-    int genomeSize = ind.getGenomeLength();
-    double sumOfGenome = IntStream.range(0, genomeSize).mapToDouble((i) -> {
-      return (double) ind.get(i);
-    }).sum();
-
-    Fitness fit = new SimpleFitness(sumOfGenome * scalingFactor);
-    return fit;
+  public List<Object> getValues() {
+    List<Object> values = new ArrayList<>();
+    values.add(randomInt);
+    values.add(label);
+    return values;
   }
+}
 
-  @Override
-  public void addAgent(Agent<? extends Individual> agent) {
-    // Don't need to add them to a simulation, they can be evaluated directly
-    // based on the content of their genome.
-  }
+@Override
+public Fitness getFitness(Agent<? extends Individual> agent) {
 
-  @Override
-  public boolean step() {
-    // Stepping this model isn't needed; individuals can be evaluated directly.
-    return false;  // don't stop early
-  }
+  // The agent is assumed to have a VectorInvididual<Integer>
+  VectorIndividual<Integer> ind = (VectorIndividual<Integer>) agent
+          .getManager();
+  int genomeSize = ind.getGenomeLength();
+  double sumOfGenome = IntStream.range(0, genomeSize).mapToDouble((i) -> {
+    return (double) ind.get(i);
+  }).sum();
 
-  @Override
-  public int getMaxSteps() {
-    return 3;
-  }
-  
+  Fitness fit = new SimpleFitness(sumOfGenome * scalingFactor);
+  return fit;
+}
 
-  @Override
-  public AgencyData getSummaryData() {
-    SummaryData sd = new SummaryData();
-    sd.label = "foo";
-    sd.randomInt = RandomUtils.nextInt(0, 100_000);
-    return sd;
-  }
+@Override
+public void addAgent(Agent<? extends Individual> agent) {
+  // Don't need to add them to a simulation, they can be evaluated directly
+  // based on the content of their genome.
+}
 
-  @Override
-  public AgencyData getStepData() {
-    SummaryData sd = new SummaryData();
-    sd.label = "bar";
-    sd.randomInt = RandomUtils.nextInt(0, 100_000);
-    return sd;
-  }
+@Override
+public boolean step() {
+  // Stepping this model isn't needed; individuals can be evaluated directly.
+  return false;  // don't stop early
+}
+
+@Override
+public int getMaxSteps() {
+  return 3;
+}
+
+
+@Override
+public AgencyData getSummaryData() {
+  SummaryData sd = new SummaryData();
+  sd.label = "foo";
+  sd.randomInt = RandomUtils.nextInt(0, 100_000);
+  return sd;
+}
+
+@Override
+public AgencyData getStepData() {
+  SummaryData sd = new SummaryData();
+  sd.label = "bar";
+  sd.randomInt = RandomUtils.nextInt(0, 100_000);
+  return sd;
+}
 
 }

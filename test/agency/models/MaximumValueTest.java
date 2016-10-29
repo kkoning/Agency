@@ -1,6 +1,7 @@
 package agency.models;
 
 import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import agency.Config;
@@ -12,60 +13,59 @@ import agency.eval.EvaluationGroup;
 
 public class MaximumValueTest {
 
-	Environment env;
-	Population pop;
-	
-	EvaluationGroup eg;
+Environment env;
+Population  pop;
 
-	@Before
-	public void setUp() throws Exception {
+EvaluationGroup eg;
 
-    System.out.println("Attempting to initialize from test/agency/models/MaximumValueTest.xml");
-    XMLConfigurable xc = Config.getXMLConfigurableFromFile("test/agency/models/MaximumValueTest.xml");
+@Before
+public void setUp() throws Exception {
 
-    env = (Environment) xc;
-	}
-	
+  System.out.println("Attempting to initialize from test/agency/models/MaximumValueTest.xml");
+  XMLConfigurable xc = Config.getXMLConfigurableFromFile("test/agency/models/MaximumValueTest.xml");
 
-	@Test
-	public void testEvaluatePop() {
+  env = (Environment) xc;
+}
 
-	  System.out.println("---Start testEvaluatePop");
-		List<PopulationGroup> popGroups = env.getPopulationGroups();
 
-    System.out.println("---Initial Populations");
-    for (PopulationGroup popGroup : popGroups) {
-      for (Population pop : popGroup.getPopulations()) {
-        System.out.println(pop);
-      }
+@Test
+public void testEvaluatePop() {
+
+  System.out.println("---Start testEvaluatePop");
+  List<PopulationGroup> popGroups = env.getPopulationGroups();
+
+  System.out.println("---Initial Populations");
+  for (PopulationGroup popGroup : popGroups) {
+    for (Population pop : popGroup.getPopulations()) {
+      System.out.println(pop);
     }
-		
-		for (int i = 0; i < 5; i++) {
-		  env.evolve();
-		}
+  }
 
-    System.out.println("---Population after 5 generations");
-		
-    for (PopulationGroup popGroup : popGroups) {
-      for (Population pop : popGroup.getPopulations()) {
-        System.out.println(pop);
-      }
+  for (int i = 0; i < 5; i++) {
+    env.evolve();
+  }
+
+  System.out.println("---Population after 5 generations");
+
+  for (PopulationGroup popGroup : popGroups) {
+    for (Population pop : popGroup.getPopulations()) {
+      System.out.println(pop);
     }
+  }
 
-    for (int i = 0; i < 95; i++) {
-      env.evolve();
+  for (int i = 0; i < 95; i++) {
+    env.evolve();
+  }
+
+  System.out.println("---Population after 100 generations");
+
+  for (PopulationGroup popGroup : popGroups) {
+    for (Population pop : popGroup.getPopulations()) {
+      System.out.println(pop);
     }
+  }
 
-    System.out.println("---Population after 100 generations");
 
-    for (PopulationGroup popGroup : popGroups) {
-      for (Population pop : popGroup.getPopulations()) {
-        System.out.println(pop);
-      }
-    }
-
-		
-		
-	}
+}
 
 }

@@ -30,232 +30,229 @@ import agency.Population;
 
 public class OtherTournamentSelector extends AbstractSelector {
 
-	Stream<Individual> tournamentStream;
-	int touramentSize;
-	int topIndividuals = 1;
-	Population pop;
+Stream<Individual> tournamentStream;
+int                touramentSize;
+int topIndividuals = 1;
+Population pop;
 
-	public OtherTournamentSelector(Population pop, int tournamentSize) {
-		super(pop);
-		this.pop = pop;
-		this.touramentSize = tournamentSize;
-		connectTournamentStream();
-	}
+public OtherTournamentSelector(Population pop, int tournamentSize) {
+  super(pop);
+  this.pop = pop;
+  this.touramentSize = tournamentSize;
+  connectTournamentStream();
+}
 
-	public OtherTournamentSelector(Population pop, int tournamentSize, int topIndividuals) {
-		super(pop);
-		this.pop = pop;
-		this.touramentSize = tournamentSize;
-		this.topIndividuals = topIndividuals;
-		connectTournamentStream();
-	}
+public OtherTournamentSelector(Population pop, int tournamentSize, int topIndividuals) {
+  super(pop);
+  this.pop = pop;
+  this.touramentSize = tournamentSize;
+  this.topIndividuals = topIndividuals;
+  connectTournamentStream();
+}
 
-	void connectTournamentStream() {
-		tournamentStream = Stream.generate(new TournamentSupplier(pop,touramentSize, topIndividuals));
-		
-	}
-	
-	class TournamentSupplier implements Supplier<Individual> {
-		int tournamentSize;
-		int topIndividuals = 1;
-		Queue<Individual> queue;
-		Population population;
-		
-		public TournamentSupplier(Population pop, int tournamentSize, int topIndividuals) {
-			super();
-			if (topIndividuals >= tournamentSize)
-				throw new RuntimeException("Tourament selection must choose fewer individuals (" +
-						topIndividuals + ") than the tournament size (" +
-						tournamentSize + ")");
-			
-			this.tournamentSize = tournamentSize;
-			this.topIndividuals = topIndividuals;
-			this.population = pop;
-			queue = new ArrayBlockingQueue<>(tournamentSize);
-		}
+void connectTournamentStream() {
+  tournamentStream = Stream.generate(new TournamentSupplier(pop, touramentSize, topIndividuals));
 
-		@Override
-		public Individual get() {
-			if (queue.size() > 0)
-				return queue.remove();
-			
-			ArrayList<Individual> tournament = new ArrayList<>(tournamentSize);
-			population.randomIndividuals()
-				.limit(tournamentSize)
-				.forEach(ind -> tournament.add(ind));
-			
-			Collections.sort(tournament, new FitnessComparator());
-			for (int i = 1; i < topIndividuals; i++) {
-				queue.add(tournament.get(i));
-			}
-			return tournament.get(0);
-		}
-		
-	}
+}
 
-	public Iterator<Individual> iterator() {
-		return tournamentStream.iterator();
-	}
+class TournamentSupplier implements Supplier<Individual> {
+  int tournamentSize;
+  int topIndividuals = 1;
+  Queue<Individual> queue;
+  Population        population;
 
-	public Spliterator<Individual> spliterator() {
-		return tournamentStream.spliterator();
-	}
+  public TournamentSupplier(Population pop, int tournamentSize, int topIndividuals) {
+    super();
+    if (topIndividuals >= tournamentSize)
+      throw new RuntimeException("Tourament selection must choose fewer individuals (" +
+              topIndividuals + ") than the tournament size (" +
+              tournamentSize + ")");
 
-	public boolean isParallel() {
-		return tournamentStream.isParallel();
-	}
+    this.tournamentSize = tournamentSize;
+    this.topIndividuals = topIndividuals;
+    this.population = pop;
+    queue = new ArrayBlockingQueue<>(tournamentSize);
+  }
 
-	public Stream<Individual> sequential() {
-		return tournamentStream.sequential();
-	}
+  @Override
+  public Individual get() {
+    if (queue.size() > 0)
+      return queue.remove();
 
-	public Stream<Individual> parallel() {
-		return tournamentStream.parallel();
-	}
+    ArrayList<Individual> tournament = new ArrayList<>(tournamentSize);
+    population.randomIndividuals()
+            .limit(tournamentSize)
+            .forEach(ind -> tournament.add(ind));
 
-	public Stream<Individual> unordered() {
-		return tournamentStream.unordered();
-	}
+    Collections.sort(tournament, new FitnessComparator());
+    for (int i = 1; i < topIndividuals; i++) {
+      queue.add(tournament.get(i));
+    }
+    return tournament.get(0);
+  }
 
-	public Stream<Individual> onClose(Runnable closeHandler) {
-		return tournamentStream.onClose(closeHandler);
-	}
+}
 
-	public void close() {
-		tournamentStream.close();
-	}
+public Iterator<Individual> iterator() {
+  return tournamentStream.iterator();
+}
 
-	public Stream<Individual> filter(Predicate<? super Individual> predicate) {
-		return tournamentStream.filter(predicate);
-	}
+public Spliterator<Individual> spliterator() {
+  return tournamentStream.spliterator();
+}
 
-	public <R> Stream<R> map(Function<? super Individual, ? extends R> mapper) {
-		return tournamentStream.map(mapper);
-	}
+public boolean isParallel() {
+  return tournamentStream.isParallel();
+}
 
-	public IntStream mapToInt(ToIntFunction<? super Individual> mapper) {
-		return tournamentStream.mapToInt(mapper);
-	}
+public Stream<Individual> sequential() {
+  return tournamentStream.sequential();
+}
 
-	public LongStream mapToLong(ToLongFunction<? super Individual> mapper) {
-		return tournamentStream.mapToLong(mapper);
-	}
+public Stream<Individual> parallel() {
+  return tournamentStream.parallel();
+}
 
-	public DoubleStream mapToDouble(ToDoubleFunction<? super Individual> mapper) {
-		return tournamentStream.mapToDouble(mapper);
-	}
+public Stream<Individual> unordered() {
+  return tournamentStream.unordered();
+}
 
-	public <R> Stream<R> flatMap(Function<? super Individual, ? extends Stream<? extends R>> mapper) {
-		return tournamentStream.flatMap(mapper);
-	}
+public Stream<Individual> onClose(Runnable closeHandler) {
+  return tournamentStream.onClose(closeHandler);
+}
 
-	public IntStream flatMapToInt(Function<? super Individual, ? extends IntStream> mapper) {
-		return tournamentStream.flatMapToInt(mapper);
-	}
+public void close() {
+  tournamentStream.close();
+}
 
-	public LongStream flatMapToLong(Function<? super Individual, ? extends LongStream> mapper) {
-		return tournamentStream.flatMapToLong(mapper);
-	}
+public Stream<Individual> filter(Predicate<? super Individual> predicate) {
+  return tournamentStream.filter(predicate);
+}
 
-	public DoubleStream flatMapToDouble(Function<? super Individual, ? extends DoubleStream> mapper) {
-		return tournamentStream.flatMapToDouble(mapper);
-	}
+public <R> Stream<R> map(Function<? super Individual, ? extends R> mapper) {
+  return tournamentStream.map(mapper);
+}
 
-	public Stream<Individual> distinct() {
-		return tournamentStream.distinct();
-	}
+public IntStream mapToInt(ToIntFunction<? super Individual> mapper) {
+  return tournamentStream.mapToInt(mapper);
+}
 
-	public Stream<Individual> sorted() {
-		return tournamentStream.sorted();
-	}
+public LongStream mapToLong(ToLongFunction<? super Individual> mapper) {
+  return tournamentStream.mapToLong(mapper);
+}
 
-	public Stream<Individual> sorted(Comparator<? super Individual> comparator) {
-		return tournamentStream.sorted(comparator);
-	}
+public DoubleStream mapToDouble(ToDoubleFunction<? super Individual> mapper) {
+  return tournamentStream.mapToDouble(mapper);
+}
 
-	public Stream<Individual> peek(Consumer<? super Individual> action) {
-		return tournamentStream.peek(action);
-	}
+public <R> Stream<R> flatMap(Function<? super Individual, ? extends Stream<? extends R>> mapper) {
+  return tournamentStream.flatMap(mapper);
+}
 
-	public Stream<Individual> limit(long maxSize) {
-		return tournamentStream.limit(maxSize);
-	}
+public IntStream flatMapToInt(Function<? super Individual, ? extends IntStream> mapper) {
+  return tournamentStream.flatMapToInt(mapper);
+}
 
-	public Stream<Individual> skip(long n) {
-		return tournamentStream.skip(n);
-	}
+public LongStream flatMapToLong(Function<? super Individual, ? extends LongStream> mapper) {
+  return tournamentStream.flatMapToLong(mapper);
+}
 
-	public void forEach(Consumer<? super Individual> action) {
-		tournamentStream.forEach(action);
-	}
+public DoubleStream flatMapToDouble(Function<? super Individual, ? extends DoubleStream> mapper) {
+  return tournamentStream.flatMapToDouble(mapper);
+}
 
-	public void forEachOrdered(Consumer<? super Individual> action) {
-		tournamentStream.forEachOrdered(action);
-	}
+public Stream<Individual> distinct() {
+  return tournamentStream.distinct();
+}
 
-	public Object[] toArray() {
-		return tournamentStream.toArray();
-	}
+public Stream<Individual> sorted() {
+  return tournamentStream.sorted();
+}
 
-	public <A> A[] toArray(IntFunction<A[]> generator) {
-		return tournamentStream.toArray(generator);
-	}
+public Stream<Individual> sorted(Comparator<? super Individual> comparator) {
+  return tournamentStream.sorted(comparator);
+}
 
-	public Individual reduce(Individual identity, BinaryOperator<Individual> accumulator) {
-		return tournamentStream.reduce(identity, accumulator);
-	}
+public Stream<Individual> peek(Consumer<? super Individual> action) {
+  return tournamentStream.peek(action);
+}
 
-	public Optional<Individual> reduce(BinaryOperator<Individual> accumulator) {
-		return tournamentStream.reduce(accumulator);
-	}
+public Stream<Individual> limit(long maxSize) {
+  return tournamentStream.limit(maxSize);
+}
 
-	public <U> U reduce(U identity, BiFunction<U, ? super Individual, U> accumulator, BinaryOperator<U> combiner) {
-		return tournamentStream.reduce(identity, accumulator, combiner);
-	}
+public Stream<Individual> skip(long n) {
+  return tournamentStream.skip(n);
+}
 
-	public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super Individual> accumulator,
-			BiConsumer<R, R> combiner) {
-		return tournamentStream.collect(supplier, accumulator, combiner);
-	}
+public void forEach(Consumer<? super Individual> action) {
+  tournamentStream.forEach(action);
+}
 
-	public <R, A> R collect(Collector<? super Individual, A, R> collector) {
-		return tournamentStream.collect(collector);
-	}
+public void forEachOrdered(Consumer<? super Individual> action) {
+  tournamentStream.forEachOrdered(action);
+}
 
-	public Optional<Individual> min(Comparator<? super Individual> comparator) {
-		return tournamentStream.min(comparator);
-	}
+public Object[] toArray() {
+  return tournamentStream.toArray();
+}
 
-	public Optional<Individual> max(Comparator<? super Individual> comparator) {
-		return tournamentStream.max(comparator);
-	}
+public <A> A[] toArray(IntFunction<A[]> generator) {
+  return tournamentStream.toArray(generator);
+}
 
-	public long count() {
-		return tournamentStream.count();
-	}
+public Individual reduce(Individual identity, BinaryOperator<Individual> accumulator) {
+  return tournamentStream.reduce(identity, accumulator);
+}
 
-	public boolean anyMatch(Predicate<? super Individual> predicate) {
-		return tournamentStream.anyMatch(predicate);
-	}
+public Optional<Individual> reduce(BinaryOperator<Individual> accumulator) {
+  return tournamentStream.reduce(accumulator);
+}
 
-	public boolean allMatch(Predicate<? super Individual> predicate) {
-		return tournamentStream.allMatch(predicate);
-	}
+public <U> U reduce(U identity, BiFunction<U, ? super Individual, U> accumulator, BinaryOperator<U> combiner) {
+  return tournamentStream.reduce(identity, accumulator, combiner);
+}
 
-	public boolean noneMatch(Predicate<? super Individual> predicate) {
-		return tournamentStream.noneMatch(predicate);
-	}
+public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super Individual> accumulator,
+                     BiConsumer<R, R> combiner) {
+  return tournamentStream.collect(supplier, accumulator, combiner);
+}
 
-	public Optional<Individual> findFirst() {
-		return tournamentStream.findFirst();
-	}
+public <R, A> R collect(Collector<? super Individual, A, R> collector) {
+  return tournamentStream.collect(collector);
+}
 
-	public Optional<Individual> findAny() {
-		return tournamentStream.findAny();
-	}
-	
-	
-	
-	
+public Optional<Individual> min(Comparator<? super Individual> comparator) {
+  return tournamentStream.min(comparator);
+}
+
+public Optional<Individual> max(Comparator<? super Individual> comparator) {
+  return tournamentStream.max(comparator);
+}
+
+public long count() {
+  return tournamentStream.count();
+}
+
+public boolean anyMatch(Predicate<? super Individual> predicate) {
+  return tournamentStream.anyMatch(predicate);
+}
+
+public boolean allMatch(Predicate<? super Individual> predicate) {
+  return tournamentStream.allMatch(predicate);
+}
+
+public boolean noneMatch(Predicate<? super Individual> predicate) {
+  return tournamentStream.noneMatch(predicate);
+}
+
+public Optional<Individual> findFirst() {
+  return tournamentStream.findFirst();
+}
+
+public Optional<Individual> findAny() {
+  return tournamentStream.findAny();
+}
+
 
 }
