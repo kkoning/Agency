@@ -8,9 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import agency.Config;
 import agency.Fitness;
 import agency.Individual;
 import agency.Population;
@@ -80,13 +78,14 @@ public void setSourcePopulation(Population pop) {
     }
     // We should be gauranteed to have a SimpleFitness now...
     // TODO, make sure it is positive and non-zero.
-    double fitness = fit.getFitness();
+    double fitness = fit.getAverageFitness();
     if (fitness <= 0) {
-      throw new RuntimeException("FitnessProportionalSelector encountered individuals with negative fitness. "
-              + " This selector requires only individuals with positive fitness.");
+      throw new RuntimeException("FitnessProportionalSelector encountered an individual with fitness <= 0. "
+              + " This selector requires only individuals with positive fitness.\n"
+              + "Individual was: " + ind.toString());
     }
 
-    totalFitness += fit.getFitness();
+    totalFitness += fit.getAverageFitness();
     individuals.put(totalFitness, ind);
   }
 
