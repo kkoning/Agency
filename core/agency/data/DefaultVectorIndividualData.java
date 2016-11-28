@@ -50,7 +50,7 @@ public void writePopulationData(int generation, Population pop) {
     // Fitness (only supports SimpleFitness)
     Fitness f = i.getFitness();
     if (f instanceof SimpleFitness) {
-      d.fitness = ((SimpleFitness) f).getFitness();
+      d.fitness = ((SimpleFitness) f).getAverageFitness();
     }
 
     // Genome

@@ -83,14 +83,8 @@ public Stream<Agent<? extends Individual>> shuffledAgentStream() {
  *
  * @param population
  */
-void addPopulationGroup(Population population) {
+void addPopulation(Population population) {
   this.populations.add(population);
-}
-
-public void aggregateFitnesses() {
-  for (Population pop : populations) {
-    pop.aggregateFitnesses(); // Parallelization inside here
-  }
 }
 
 public void reproduce() {

@@ -2,28 +2,46 @@ package agency;
 
 public class SimpleFitness implements Fitness {
 
-Double fitness;
+int    numSamples;
+double totalFitness;
 
 public SimpleFitness(double fitness) {
-  this.fitness = fitness;
+  this.totalFitness = fitness;
+  numSamples = 1;
 }
 
-public Double getFitness() {
-  return fitness;
+public Double getAverageFitness() {
+  return totalFitness / numSamples;
 }
 
-public void setFitness(Double fitness) {
-  this.fitness = fitness;
+public void addFitnessSample(double fitness) {
+  this.totalFitness += fitness;
+  totalFitness++;
 }
 
 @Override
 public int compareTo(Fitness o) {
-  return fitness.compareTo(((SimpleFitness) o).fitness);
+  if (o instanceof SimpleFitness) {
+    SimpleFitness sf = (SimpleFitness) o;
+    return Double.compare(this.getAverageFitness(), sf.getAverageFitness());
+  } else {
+    throw new RuntimeException("SimpleFitness can only be compared with other SimpleFitness objects");
+  }
 }
 
 @Override
 public String toString() {
-  return "SimpleFitness [" + fitness + "]";
+  return "SimpleFitness{" +
+          "numSamples=" + numSamples +
+          ", totalFitness=" + totalFitness +
+          '}';
+}
+
+@Override
+public void combine(Fitness other) {
+  SimpleFitness sf = (SimpleFitness) other;
+  this.numSamples += sf.numSamples;
+  this.totalFitness += sf.totalFitness;
 }
 
 }

@@ -2,8 +2,6 @@ package agency;
 
 import java.util.*;
 
-import agency.eval.FitnessAggregator;
-
 /**
  * A base class for different types of individuals.  It is recommended
  * that new classes of individuals inherit from AbstractIndividual (or at least
@@ -16,7 +14,6 @@ private static final int  estimatedFitnessSamples = 5;
 
 List<UUID> parentIDs;
 Fitness    fitness;
-List<Fitness> fitnessSamples = Collections.synchronizedList(new ArrayList<>(estimatedFitnessSamples));
 private UUID uuid = UUID.randomUUID();
 
 @Override
@@ -46,21 +43,6 @@ public Fitness getFitness() {
 
 public void setFitness(Fitness fitness) {
   this.fitness = fitness;
-}
-
-@Override
-public void addFitnessSample(Fitness fitness) {
-  fitnessSamples.add(fitness);
-}
-
-@Override
-public List<Fitness> getFitnessSamples() {
-  return fitnessSamples;
-}
-
-@Override
-public void clearFitnessSamples() {
-  fitnessSamples.clear();
 }
 
 }

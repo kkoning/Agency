@@ -42,13 +42,16 @@ public class SummaryData implements AgencyData {
 public Fitness getFitness(Agent<? extends Individual> agent) {
 
   // The agent is assumed to have a VectorInvididual<Integer>
-  VectorIndividual<Integer> ind = (VectorIndividual<Integer>) agent
+  VectorIndividual<Double> ind = (VectorIndividual<Double>) agent
           .getManager();
   int genomeSize = ind.getGenomeLength();
-  double sumOfGenome = IntStream.range(0, genomeSize).mapToDouble((i) -> {
-    return (double) ind.get(i);
-  }).sum();
-
+  double sumOfGenome = 0;
+  for (int i = 0; i < ind.getGenomeLength(); i++) {
+    Object[] o = ind.getGenome();
+    sumOfGenome += (Double) o[i];
+  }
+  if (sumOfGenome <= 0)
+    sumOfGenome = Double.MIN_NORMAL;
   Fitness fit = new SimpleFitness(sumOfGenome * scalingFactor);
   return fit;
 }

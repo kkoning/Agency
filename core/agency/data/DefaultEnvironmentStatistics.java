@@ -1,10 +1,7 @@
 package agency.data;
 
 import agency.*;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +29,7 @@ public void calculate(Environment env) {
         fitness.ifPresent(f -> {
           try {
             SimpleFitness sf = (SimpleFitness) f;
-            stats.addValue(sf.getFitness());
+            stats.addValue(sf.getAverageFitness());
           } catch (ClassCastException cce) {
             throw new RuntimeException("DefaultEnvironmentStatistics assumes individuals with SimpleFitness");
           }

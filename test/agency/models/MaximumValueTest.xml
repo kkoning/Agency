@@ -3,26 +3,30 @@
     <PopulationGroup id="test" totalSize="50">
         <Population initialSize="50">
             <NullAgentFactory/>
-            <MeanSimpleFitnessAggregator/>
-            <VectorIndividualFactory genomeSize="20">
-                <FlatIntegerInitializer ceiling="10" end="19"
-                                        floor="0" start="0"/>
+            <VectorIndividualFactory length="10">
+                <GaussianRandomVectorRange start="0" end="9">
+                    <Means type="DoubleList" start="0" end="9">0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1</Means>
+                    <Deviations type="DoubleList" start="0" end="9">0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1</Deviations>
+                </GaussianRandomVectorRange>
             </VectorIndividualFactory>
-            <VectorMutationPipeline>
-                <WeightedBreedingPipeline>
-                    <ElitismSelector proportionElites="0.3" weight="0.5"/>
-                    <TournamentSelector topIndividuals="1"
-                                        touramentSize="2" weight="4.5"/>
-                    <FitnessProportionalSelector weight="2.0"/>
-                    <RandomIndividualSelector weight="1.0"/>
-                </WeightedBreedingPipeline>
-                <GaussianIntegerMutator end="19"
-                                        mutationProbability="0.05" sd="5.0" start="0"/>
-                <IntegerLimiter ceiling="20" end="19" floor="0"
-                                start="0"/>
-            </VectorMutationPipeline>
+            <VectorCrossoverPipeline crossoverProb="0.3">
+                <VectorMutationPipeline>
+                    <WeightedBreedingPipeline>
+                        <ElitismSelector proportionElites="0.3" weight="0.5"/>
+                        <TournamentSelector topIndividuals="1"
+                                            touramentSize="2" weight="4.5"/>
+                        <FitnessProportionalSelector weight="2.0"/>
+                        <RandomIndividualSelector weight="1.0"/>
+                    </WeightedBreedingPipeline>
+                    <VectorMutator length="10">
+                        <GaussianMutator start="0" end="9">
+                            <MutationProbability type="DoubleList" start="0" end="9">0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1</MutationProbability>
+                            <Deviations type="DoubleList" start="0" end="9">0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2</Deviations>
+                        </GaussianMutator>
+                    </VectorMutator>
+                </VectorMutationPipeline>
+            </VectorCrossoverPipeline>
         </Population>
-
     </PopulationGroup>
 
     <!-- Need an EvaluationGroupFactory -->
@@ -40,7 +44,6 @@
     <LocalEvaluator/>
 
     <!-- Test out an DefaultAgentModelReporter -->
-    <AgentModelReporter perStepFile="psf.tsv"
-                        summaryFile="sum.tsv"/>
+    <DefaultModelSummaryData file="summary.csv" format="csv"/>
 
 </Environment>

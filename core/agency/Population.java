@@ -14,10 +14,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import agency.eval.FitnessAggregator;
 import agency.reproduce.BreedingPipeline;
 import agency.util.RandomStream;
-import agency.vector.ValueMutator;
 
 public class Population implements Serializable, XMLConfigurable {
 private static final long serialVersionUID = 4940155716065322170L;
@@ -27,7 +25,6 @@ Integer                       initialSize;
 List<Individual>              individuals;
 IndividualFactory<Individual> indFactory;
 AgentFactory                  agentFactory;
-FitnessAggregator             fitnessAggregator;
 BreedingPipeline              breedingPipeline;
 List<PopulationData>          populationDataOutputs;
 
@@ -87,12 +84,7 @@ public void readXMLConfig(Element e) {
           throw new UnsupportedOperationException(
                   "Population cannot have more than one BreedingPipeline");
         breedingPipeline = (BreedingPipeline) xc;
-      } else if (xc instanceof FitnessAggregator) {
-        if (fitnessAggregator != null) // Can only have one FitnessAggregator
-          throw new UnsupportedOperationException(
-                  "Population cannot have more than one FitnessAggregator");
-        fitnessAggregator = (FitnessAggregator) xc;
-      } else if (xc instanceof PopulationData) {
+      }  else if (xc instanceof PopulationData) {
         PopulationData pd = (PopulationData) xc;
         populationDataOutputs.add(pd);
       } else {
@@ -114,10 +106,6 @@ public void readXMLConfig(Element e) {
     throw new UnsupportedOperationException(
             "Population must have an BreedingPipeline to evolve the population");
 
-  if (fitnessAggregator == null)
-    throw new UnsupportedOperationException(
-            "Population must have an FitnessAggregator to evolve the population");
-
   initialSize = Integer.parseInt(e.getAttribute("initialSize"));
   initializePopulation(initialSize);
 }
@@ -128,10 +116,8 @@ public void writeXMLConfig(Element e) {
   e.setAttribute("initialSize", initialSize.toString());
   Element indFactoryE = Config.createUnnamedElement(d, indFactory);
   Element agentFactoryE = Config.createUnnamedElement(d, agentFactory);
-  Element fitAggE = Config.createUnnamedElement(d, fitnessAggregator);
   Element breedPipeE = Config.createUnnamedElement(d, breedingPipeline);
   e.appendChild(indFactoryE);
-  e.appendChild(fitAggE);
   e.appendChild(agentFactoryE);
   e.appendChild(breedPipeE);
 
@@ -149,12 +135,6 @@ public List<PopulationData> getPopulationDataOutputs() {
 @Override
 public void resumeFromCheckpoint() {
 
-}
-
-public void aggregateFitnesses() {
-  individuals.stream().parallel().forEach(ind -> {
-    ind.aggregateFitness(fitnessAggregator);
-  });
 }
 
 public void reproduce() {
@@ -177,20 +157,12 @@ public int size() {
   return individuals.size();
 }
 
-public Stream<Agent<? extends Individual>> allAgents() {
-  return individuals.stream().map(i -> createAgent(i));
-}
-
 Agent<? extends Individual> createAgent(Individual ind) {
   return agentFactory.createAgent(ind);
 }
 
 public Stream<Individual> allIndividuals() {
   return individuals.stream();
-}
-
-public Stream<Agent<? extends Individual>> randomAgents() {
-  return randomIndividuals().map(i -> createAgent(i));
 }
 
 public Stream<Individual> randomIndividuals() {
@@ -203,12 +175,6 @@ public Stream<Agent<? extends Individual>> shuffledAgents() {
   return shuffledIndividuals().map(i -> createAgent(i));
 }
 
-// @Override
-// public String toString() {
-// return "Population [individuals=" + individuals + ", indFactory=" +
-// indFactory + ", agentFactory="
-// + agentFactory + "]";
-// }
 
 Stream<Individual> shuffledIndividuals() {
   RandomStream<Individual> rs = new RandomStream<>();
@@ -223,9 +189,9 @@ public String toString() {
   if (individuals != null)
     for (Individual ind : individuals) {
       String fitnessDescription;
-      Optional<Fitness> fit = Optional.of(ind.getFitness());
-      if (fit.isPresent())
-        fitnessDescription = fit.get().toString();
+      Fitness fit = ind.getFitness();
+      if (fit != null)
+        fitnessDescription = fit.toString();
       else
         fitnessDescription = "No Fitness";
       sb.append("\n" + ind + "->" + fitnessDescription + ",");

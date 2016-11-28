@@ -1,13 +1,7 @@
 package agency.eval;
 
 import java.io.Serializable;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.*;
 
 import agency.Agent;
 import agency.AgentModel;
@@ -18,15 +12,15 @@ import agency.data.AgencyData;
 public class EvaluationGroup implements Serializable, Runnable {
 private static final long serialVersionUID = 1922150637452370643L;
 
-UUID                                      id     = UUID.randomUUID();
-Map<Agent<? extends Individual>, Fitness> agents = new IdentityHashMap<>();
+UUID        id     = UUID.randomUUID();
+List<Agent> agents = new ArrayList<>();
 
 AgentModel model;
 
 // Model data outputs
 Object summaryData;
 Map<Integer, AgencyData> perStepData = new TreeMap<>();
-
+boolean                  finished    = false;
 
 public Object getSummaryData() {
   return summaryData;
@@ -36,20 +30,26 @@ public Map<Integer, AgencyData> getPerStepData() {
   return perStepData;
 }
 
-public Stream<Entry<Individual, Fitness>> getResults() {
-  return agents.entrySet()
-          .stream()
-          .map(ent -> new SimpleEntry<Individual, Fitness>(ent.getKey().getManager(), ent.getValue()));
+public Map<Individual, Fitness> getResults() {
+  Map<Individual, Fitness> results = new IdentityHashMap<>();
+  for (Agent agent : agents) {
+    results.put(agent.getManager(), model.getFitness(agent));
+  }
+  return results;
 }
 
 public void addAgent(Agent<? extends Individual> agent) {
-  agents.put(agent, null);
+  agents.add(agent);
 }
 
 @Override
 public void run() {
-  // Associate the Agents with the model
-  for (Agent<? extends Individual> agent : agents.keySet()) {
+
+  if (finished)
+    throw new RuntimeException("Cannot run an EvaluationGroup twice.");
+
+  // Associate the Agents with the model and vice versa
+  for (Agent agent : agents) {
     model.addAgent(agent);
     agent.setModel(model);
   }
@@ -71,31 +71,22 @@ public void run() {
   // Get summary data
   summaryData = model.getSummaryData();
 
-  for (Agent<? extends Individual> agent : agents.keySet()) {
-    updateFitness(agent, model.getFitness(agent));
-  }
-
-}
-
-void updateFitness(Agent<? extends Individual> agent, Fitness fitness) {
-  if (agents.containsKey(agent))
-    agents.put(agent, fitness);
-  else
-    throw new RuntimeException("Trying to update fitness of agent that does not exist in this EvaluationGroup");
+  // Mark as finished to prevent accidental re-execution of model.
+  finished = true;
 }
 
 @Override
 public String toString() {
   StringBuffer sb = new StringBuffer();
-  sb.append("EvaluationGroup@" + this.hashCode() + ":[");
-  for (Entry<Agent<? extends Individual>, Fitness> entry : agents.entrySet()) {
+  sb.append("EvaluationGroup#" + this.hashCode() + ":[");
+  for (Agent agent : agents) {
     String fitnessDescription;
-    Fitness fit = entry.getValue();
+    Fitness fit = model.getFitness(agent);
     if (fit != null)
       fitnessDescription = fit.toString();
     else
       fitnessDescription = "No Fitness";
-    sb.append("\n" + entry.getKey() + "->" + fitnessDescription + ",");
+    sb.append("\n" + agent + "->" + fitnessDescription + ",");
   }
   sb.deleteCharAt(sb.length() - 1);
   sb.append("]\n");
