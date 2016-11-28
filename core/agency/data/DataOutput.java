@@ -6,11 +6,10 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.Element;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,21 +19,17 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DataOutput implements XMLConfigurable {
 
+private static final String separatorChar = ",";
 protected         String       outputFilename;
-protected         CSVFormat    outputFormat;
 protected         boolean      headersOutput;
 protected         List<String> prefixHeaders;
+
 transient private Lock         writeLock;
-transient private CSVPrinter   csvOut;
+BufferedOutputStream out;
 
 public DataOutput(String outputFilename) {
-  this(outputFilename, CSVFormat.DEFAULT);
-}
-
-public DataOutput(String outputFilename, CSVFormat format) {
   this();
   this.outputFilename = outputFilename;
-  this.outputFormat = format;
   openFile();
 }
 
@@ -55,7 +50,6 @@ public void setPrefixHeaders(String[] headers) {
 
 
 public void write(AgencyData ad, Object... prefixes) {
-
   /*
    * Write the header if it has not yet been written.
    */
@@ -83,30 +77,47 @@ public void write(AgencyData ad, Object... prefixes) {
   for (Object prefix : prefixes)
     data.add(prefix);
   data.addAll(ad.getValues());
-  printRecord(data);
+  writeLine(data);
 }
 
-protected void writeHeaders(AgencyData ad) {
-  List<String> headers = new ArrayList<>();
+private void writeHeaders(AgencyData ad) {
+  List<Object> headers = new ArrayList<>();
   headers.addAll(prefixHeaders);
   List<String> dataHeaders = ad.getHeaders();
   if (dataHeaders == null)
     throw new RuntimeException(ad.getClass().getCanonicalName() + " returned getHeaders()==null");
   else
     headers.addAll(dataHeaders);
-  printRecord(headers);
+  writeLine(headers);
 }
 
-public void printRecord(Iterable<?> values) {
+public void writeLine(Iterable<Object> values) {
+  String line = constructLine(values);
+  byte[] lineBytes = line.getBytes(StandardCharsets.UTF_8);
   try {
     writeLock.lock();
-    csvOut.printRecord(values);
+    out.write(lineBytes);
   } catch (IOException ioe) {
     throw new RuntimeException("IO Error writing " + getOutputFilename());
   } finally {
     writeLock.unlock();
   }
 }
+
+private static String constructLine(Iterable<Object> values) {
+  StringBuffer sb = new StringBuffer();
+  Iterator<Object> i = values.iterator();
+  while (i.hasNext()) {
+    Object toOutput = i.next();
+    if (toOutput != null)
+      sb.append(toOutput.toString());
+    if (i.hasNext())
+      sb.append(separatorChar);
+  }
+  sb.append("\n");
+  return sb.toString();
+}
+
 
 protected String getOutputFilename() {
   return this.outputFilename;
@@ -118,39 +129,12 @@ public void readXMLConfig(Element e) {
   if (this.outputFilename == null)
     throw new RuntimeException(this.getClass().getCanonicalName() +
             " requires an output file.  Specify with file=\"filename\"");
-  String formatString = e.getAttribute("format");
-  if (formatString == null)
-    this.outputFormat = CSVFormat.DEFAULT;
-  else if (formatString.isEmpty())
-    this.outputFormat = CSVFormat.DEFAULT;
-  else if (formatString.equalsIgnoreCase("tsv"))
-    this.outputFormat = CSVFormat.TDF;
-  else if (formatString.equalsIgnoreCase("csv"))
-    this.outputFormat = CSVFormat.DEFAULT;
-  else if (formatString.equalsIgnoreCase("excel"))
-    this.outputFormat = CSVFormat.EXCEL;
-  else if (formatString.equalsIgnoreCase("rfc4180"))
-    this.outputFormat = CSVFormat.RFC4180;
-  else
-    throw new RuntimeException("Unrecognized format + \"" + formatString + "\". " +
-            this.getClass().getCanonicalName() + " recognized formats are " +
-            "tsv, csv, excel, and rfc4180.  These correspond with the predefined formats from " +
-            "apache commons csv, CSVFormat.___");
-
   openFile();
 }
 
 @Override
 public void writeXMLConfig(Element e) {
   e.setAttribute("file", outputFilename);
-  if (outputFormat == CSVFormat.DEFAULT)
-    e.setAttribute("format", "csv");
-  else if (outputFormat == CSVFormat.TDF)
-    e.setAttribute("format", "tsv");
-  else if (outputFormat == CSVFormat.EXCEL)
-    e.setAttribute("format", "excel");
-  else if (outputFormat == CSVFormat.RFC4180)
-    e.setAttribute("format", "rfc4180");
 }
 
 @Override
@@ -159,7 +143,7 @@ public void resumeFromCheckpoint() {
   openFile();
 }
 
-void openFile() {
+private void openFile() {
   try {
     String normalizedFilename = FilenameUtils.normalize(outputFilename);
     File file = new File(normalizedFilename);
@@ -167,62 +151,17 @@ void openFile() {
       if (file.length() > 4)
         headersOutput = true;
     FileOutputStream fos = new FileOutputStream(file, true);
-    PrintStream ps = new PrintStream(fos);
-    csvOut = new CSVPrinter(ps, outputFormat);
+    this.out = new BufferedOutputStream(fos);
   } catch (Exception e) {
     throw new RuntimeException("Error opening file " + this.outputFilename, e);
-  }
-}
-
-public void printComment(String comment) {
-  try {
-    writeLock.lock();
-    csvOut.printComment(comment);
-  } catch (IOException ioe) {
-    throw new RuntimeException("IO Error writing " + getOutputFilename());
-  } finally {
-    writeLock.unlock();
-  }
-}
-
-synchronized public void printRecord(Object... values) {
-  try {
-    writeLock.lock();
-    csvOut.printRecord(values);
-  } catch (IOException ioe) {
-    throw new RuntimeException("IO Error writing " + getOutputFilename());
-  } finally {
-    writeLock.unlock();
-  }
-}
-
-synchronized public void printRecords(Iterable<?> values) {
-  try {
-    writeLock.lock();
-    csvOut.printRecord(values);
-  } catch (IOException ioe) {
-    throw new RuntimeException("IO Error writing " + getOutputFilename());
-  } finally {
-    writeLock.unlock();
-  }
-}
-
-public void printRecords(Object... values) {
-  try {
-    writeLock.lock();
-    csvOut.printRecords(values);
-  } catch (IOException ioe) {
-    throw new RuntimeException("IO Error writing " + getOutputFilename());
-  } finally {
-    writeLock.unlock();
   }
 }
 
 public void close() {
   writeLock.lock();
   try {
-    csvOut.flush();
-    csvOut.close();
+    out.flush();
+    out.close();
   } catch (IOException e) {
     throw new RuntimeException("IO Error closing " + outputFilename, e);
   }
