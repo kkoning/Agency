@@ -80,9 +80,9 @@ public void setSourcePopulation(Population pop) {
     // TODO, make sure it is positive and non-zero.
     double fitness = fit.getAverageFitness();
     if (fitness <= 0) {
-      throw new RuntimeException("FitnessProportionalSelector encountered an individual with fitness <= 0. "
-              + " This selector requires only individuals with positive fitness.\n"
-              + "Individual was: " + ind.toString());
+      log.warning("Fitness proportional selection excluded an individual with fitness <=0.\n" +
+              "Individual was: " + ind.toString());
+      continue;
     }
 
     totalFitness += fit.getAverageFitness();
