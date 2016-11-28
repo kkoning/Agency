@@ -9,25 +9,24 @@ import java.util.List;
 /**
  * Created by liara on 9/27/16.
  */
-public class DataOutputTest extends DataOutput {
+public class DataOutputTest {
 
 @Test
 public void testOutput() {
 
-  this.outputFilename = "test.csv";
-  this.outputFormat = CSVFormat.DEFAULT;
-  this.openFile();
+  DataOutput out = new DataOutput("test.csv");
+  DataClass dc = new DataClass();
 
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
-      DataClass dc = new DataClass();
+
       dc.x = i;
       dc.y = j;
       dc.test = "The Product is " + (i * j);
-      write(dc);
+      out.write(dc);
     }
   }
-  close();
+  out.close();
 
 }
 
