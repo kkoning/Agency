@@ -54,6 +54,7 @@ public static void main(String[] args) {
   try {
     cmd = parser.parse(options, args);
   } catch (ParseException e) {
+    System.out.println(e.getMessage());
     printHelp(options);
     return;
   }
