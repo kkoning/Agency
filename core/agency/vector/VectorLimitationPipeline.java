@@ -1,24 +1,22 @@
 package agency.vector;
 
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-
-import org.apache.commons.lang3.Range;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import agency.Config;
 import agency.Individual;
 import agency.Population;
 import agency.XMLConfigurable;
 import agency.reproduce.BreedingPipeline;
-import agency.util.RangeMapEntry;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-public class VectorMutationPipeline implements BreedingPipeline {
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
+public class VectorLimitationPipeline implements BreedingPipeline {
 
 BreedingPipeline source;
-VectorMutator    mutator;
+VectorLimiter    limiter;
 
 @Override
 public void readXMLConfig(Element e) {
@@ -29,8 +27,8 @@ public void readXMLConfig(Element e) {
     if (node instanceof Element) {
       Element child = (Element) node;
       XMLConfigurable xc = Config.initializeXMLConfigurable(child);
-      if (xc instanceof VectorMutator) {
-        mutator = (VectorMutator) xc;
+      if (xc instanceof VectorLimiter) {
+        limiter = (VectorLimiter) xc;
       }
       if (xc instanceof BreedingPipeline) {
         source = (BreedingPipeline) xc;
@@ -40,9 +38,9 @@ public void readXMLConfig(Element e) {
 
   if (source == null)
     throw new UnsupportedOperationException(
-            "VectorMutationPipeline must have a source BreedingPipeline");
-  if (mutator == null)
-    throw new UnsupportedOperationException("VectorMutationPipeline must have a VectorMutator");
+            "VectorLimitationPipeline must have a source BreedingPipeline");
+  if (limiter == null)
+    throw new UnsupportedOperationException("VectorLimitationPipeline must have a VectorLimiter");
 
   // TODO: Change this to explicitly requiring a Source tag for the source?
 
@@ -53,11 +51,11 @@ public void readXMLConfig(Element e) {
 public void writeXMLConfig(Element e) {
   Document d = e.getOwnerDocument();
 
-  Element sourceE = Config.createUnnamedElement(d, source);
-  e.appendChild(sourceE);
+  Element sourceElement = Config.createUnnamedElement(d, source);
+  e.appendChild(sourceElement);
 
-  Element mutatorE = Config.createUnnamedElement(d, mutator);
-  e.appendChild(mutatorE);
+  Element limiterElement = Config.createUnnamedElement(d, limiter);
+  e.appendChild(limiterElement);
 }
 
 @Override
@@ -68,13 +66,10 @@ public void resumeFromCheckpoint() {
 
 @Override
 public Individual generate() {
-  Random r = ThreadLocalRandom.current();
   VectorIndividual<Object> soureceInd = (VectorIndividual<Object>) source.generate();
-  VectorIndividual<Object> mutatedInd = mutator.mutate(soureceInd);
+  VectorIndividual<Object> limitedInd = limiter.limit(soureceInd);
 
-  return mutatedInd;
-
-
+  return limitedInd;
 }
 
 

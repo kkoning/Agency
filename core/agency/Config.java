@@ -1,7 +1,9 @@
 package agency;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,35 +15,20 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import agency.data.*;
 import agency.eval.LocalParallelEvaluator;
+import agency.util.*;
+import agency.vector.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import agency.eval.LocalEvaluator;
-import agency.eval.MeanSimpleFitnessAggregator;
 import agency.eval.ShuffledEvaluationGroupFactory;
 import agency.reproduce.ElitismSelector;
 import agency.reproduce.FitnessProportionalSelector;
 import agency.reproduce.RandomIndividualSelector;
 import agency.reproduce.TournamentSelector;
 import agency.reproduce.WeightedBreedingPipeline;
-import agency.vector.DoubleLimiter;
-import agency.vector.FlatDoubleInitializer;
-import agency.vector.FlatFloatInitializer;
-import agency.vector.FlatIntegerInitializer;
-import agency.vector.FloatLimiter;
-import agency.vector.GaussianDoubleInitializer;
-import agency.vector.GaussianDoubleMutator;
-import agency.vector.GaussianFloatInitializer;
-import agency.vector.GaussianFloatMutator;
-import agency.vector.GaussianIntegerInitializer;
-import agency.vector.GaussianIntegerMutator;
-import agency.vector.IntegerLimiter;
-import agency.vector.VectorCrossoverPipeline;
-import agency.vector.VectorIndividualFactory;
-import agency.vector.VectorMutationPipeline;
-import agency.vector.VectorRange;
 
 public class Config {
 public static Map<String, Class<? extends XMLConfigurable>> classXMLTagNames;
@@ -78,30 +65,29 @@ static {
   registerClassXMLTag(RandomIndividualSelector.class);
   registerClassXMLTag(TournamentSelector.class);
   registerClassXMLTag(WeightedBreedingPipeline.class);
-  registerClassXMLTag(VectorRange.class);
+  registerClassXMLTag(RangedVector.class);
+  registerClassXMLTag(DoubleList.class);
+  registerClassXMLTag(IntegerList.class);
+  registerClassXMLTag(RepeatingDouble.class);
+  registerClassXMLTag(RepeatingInteger.class);
+  registerClassXMLTag(GaussianRandomVectorRange.class);
+
+  registerClassXMLTag(VectorMutator.class);
+  registerClassXMLTag(GaussianMutator.class);
+
+
+  registerClassXMLTag(VectorLimitationPipeline.class);
+  registerClassXMLTag(VectorLimiter.class);
+  registerClassXMLTag(RangeLimiter.class);
+
 
   registerClassXMLTag(VectorIndividualFactory.class);
   registerClassXMLTag(DefaultAgentModelFactory.class);
   registerClassXMLTag(NullAgentFactory.class);
   registerClassXMLTag(ShuffledEvaluationGroupFactory.class);
-  registerClassXMLTag(DoubleLimiter.class);
-  registerClassXMLTag(FlatDoubleInitializer.class);
-  registerClassXMLTag(FlatFloatInitializer.class);
-  registerClassXMLTag(FlatIntegerInitializer.class);
-  registerClassXMLTag(VectorRange.class);
-  registerClassXMLTag(VectorRange.class);
-  registerClassXMLTag(FloatLimiter.class);
-  registerClassXMLTag(GaussianDoubleInitializer.class);
-  registerClassXMLTag(GaussianDoubleMutator.class);
-  registerClassXMLTag(GaussianFloatInitializer.class);
-  registerClassXMLTag(GaussianFloatMutator.class);
-  registerClassXMLTag(GaussianIntegerInitializer.class);
-  registerClassXMLTag(GaussianIntegerMutator.class);
-  registerClassXMLTag(IntegerLimiter.class);
   registerClassXMLTag(VectorCrossoverPipeline.class);
   registerClassXMLTag(VectorMutationPipeline.class);
 
-  registerClassXMLTag(MeanSimpleFitnessAggregator.class);
   registerClassXMLTag(NullAgentFactory.class);
   registerClassXMLTag(DefaultAgentFactory.class);
 
@@ -213,6 +199,25 @@ public static XMLConfigurable getXMLConfigurableFromFile(String fileName) {
 
   return toReturn;
 }
+
+public static XMLConfigurable getXMLConfigurableFromString(String xml) {
+  XMLConfigurable toReturn = null;
+
+  try {
+    Document doc = getDocBuilder().parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+    Element e = doc.getDocumentElement();
+    toReturn = initializeXMLConfigurable(e);
+  } catch (SAXException e) {
+    // TODO Auto-generated catch block
+    e.printStackTrace();
+  } catch (IOException e) {
+    // TODO Auto-generated catch block
+    e.printStackTrace();
+  }
+
+  return toReturn;
+}
+
 
 public static XMLConfigurable initializeXMLConfigurable(Element e) {
   try {
