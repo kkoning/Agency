@@ -2,7 +2,9 @@ package agency.util;
 
 import org.apache.commons.lang3.Range;
 
-public class RangeMapEntry<M, N> {
+import java.io.Serializable;
+
+public class RangeMapEntry<M, N> implements Serializable {
 Range<M> range;
 N        object;
 

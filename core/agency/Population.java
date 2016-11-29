@@ -134,7 +134,10 @@ public List<PopulationData> getPopulationDataOutputs() {
 
 @Override
 public void resumeFromCheckpoint() {
-
+  indFactory.resumeFromCheckpoint();
+  agentFactory.resumeFromCheckpoint();
+  breedingPipeline.resumeFromCheckpoint();
+  populationDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
 }
 
 public void reproduce() {

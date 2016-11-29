@@ -1,5 +1,6 @@
 package agency;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -69,10 +70,9 @@ public static void main(String[] args) {
     printHelp(options, "Must either specify EITHER configuration OR resume checkpoint, not both.");
     return;
   }
-
-    /*
-     * Validate a positive integer # of generations to evolve.
-     */
+  /*
+   * Validate a positive integer # of generations to evolve.
+   */
   int generationsToEvolve = 0;
   try {
     generationsToEvolve = Integer.parseInt(arg(cmd, generations));
@@ -85,15 +85,20 @@ public static void main(String[] args) {
     return;
   }
 
-    /*
-     * Load the evolutionary environment
-     */
+  /*
+   * Load the evolutionary environment
+   */
   System.out.println("Attempting to load the evolutionary environment");
+  // From the config file, if specified
   if (has(cmd, configFile)) {
     XMLConfigurable xc = Config.getXMLConfigurableFromFile(arg(cmd, configFile));
     env = (Environment) xc;
+  } else if (has(cmd, checkpointFile)) {
+    // From a checkpoint file, if specified.
+    File serializedFile = new File(arg(cmd, checkpointFile));
+    env = Environment.readCheckpoint(serializedFile);
+    env.resumeFromCheckpoint();
   }
-
 
   if (env == null) {
     out.println("Unknown error in creating environment, please file a bug report.");
@@ -105,6 +110,9 @@ public static void main(String[] args) {
     env.evolve();
     out.println("Generation " + env.generation);
   }
+
+  System.out.println("Saving checkpoint at generation " + env.getGeneration());
+  Environment.saveCheckpoint(env);
 
 
 }

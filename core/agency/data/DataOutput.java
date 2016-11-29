@@ -20,12 +20,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DataOutput implements XMLConfigurable {
 
 private static final String separatorChar = ",";
-protected         String       outputFilename;
-protected         boolean      headersOutput;
-protected         List<String> prefixHeaders;
+protected String       outputFilename;
+protected boolean      headersOutput;
+protected List<String> prefixHeaders;
 
-transient private Lock         writeLock;
-BufferedOutputStream out;
+transient private Lock                 writeLock;
+transient private BufferedOutputStream out;
 
 public DataOutput(String outputFilename) {
   this();

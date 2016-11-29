@@ -1,6 +1,6 @@
 package agency;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +30,7 @@ List<ModelSummaryData>      modelSummaryDataOutputs;
 List<ModelPerStepData>      modelPerStepDataOutputs;
 List<EnvironmentStatistics> stats;
 
-transient Evaluator evaluator;
+Evaluator evaluator;
 
 int generation = 0;
 
@@ -127,7 +127,14 @@ public void writeXMLConfig(Element e) {
 
 @Override
 public void resumeFromCheckpoint() {
-
+  for (PopulationGroup pg : populationGroups)
+    pg.resumeFromCheckpoint();
+  evaluationGroupFactory.resumeFromCheckpoint();
+  agentModelFactory.resumeFromCheckpoint();
+  modelSummaryDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
+  modelPerStepDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
+  stats.forEach(XMLConfigurable::resumeFromCheckpoint);
+  evaluator.resumeFromCheckpoint();
 }
 
 private static void fitnessAccumulator(
@@ -228,6 +235,32 @@ public void evolve() {
 
   generation++;
 }
+
+public static void saveCheckpoint(Environment env) {
+  // TODO: Under construction.
+  try {
+    String testFileName = "checkpoint.gen-" + env.getGeneration() + ".ser";
+    File file = new File(testFileName);
+    FileOutputStream fos = new FileOutputStream(file);
+    ObjectOutputStream oos = new ObjectOutputStream(fos);
+    oos.writeObject(env);
+  } catch (Exception e) {
+    throw new RuntimeException(e);
+  }
+
+}
+
+public static Environment readCheckpoint(File serializedFile) {
+  try {
+    FileInputStream fis = new FileInputStream(serializedFile);
+    ObjectInputStream ois = new ObjectInputStream(fis);
+    Object o = ois.readObject();
+    return (Environment) o;
+  } catch (Exception e) {
+    throw new RuntimeException(e);
+  }
+}
+
 
 private static class EnvStatsOutputHelper implements Runnable {
   EnvironmentStatistics stats;

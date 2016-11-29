@@ -3,7 +3,9 @@ package agency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public interface XMLConfigurable {
+import java.io.Serializable;
+
+public interface XMLConfigurable extends Serializable {
 /**
  * Initialize this object based on an XML element
  *

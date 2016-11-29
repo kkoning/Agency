@@ -1,6 +1,7 @@
 package agency;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -11,12 +12,15 @@ import org.w3c.dom.NodeList;
 
 public class DefaultAgentFactory implements AgentFactory {
 
-Class<? extends Agent> agentClass;
-Map<Field, Object>     parameters;
+String              agentClassName;
+Map<String, String> parameterStrings;
+
+transient Class<? extends Agent> agentClass;
+transient Map<Field, Object>     parameters;
 
 public DefaultAgentFactory() {
   super();
-  parameters = new IdentityHashMap<>();
+  parameterStrings = new HashMap<>();
 }
 
 @Override
@@ -47,15 +51,46 @@ public Agent<? extends Individual> createAgent(Individual ind) {
   return agent;
 }
 
+private void initReflection() {
+  parameters = new IdentityHashMap<>();
+  agentClass = null;
+
+  try {
+    agentClass = (Class<? extends Agent>) Class.forName(agentClassName);
+  } catch (ClassNotFoundException e1) {
+    throw new RuntimeException("Agent class " + agentClassName + " not found.  Check classpath?");
+  }
+
+  for (Map.Entry<String, String> parameterString : parameterStrings.entrySet()) {
+    Field f = null;
+    try {
+      f = agentClass.getField(parameterString.getKey());
+      f.setAccessible(true);
+    } catch (NoSuchFieldException e1) {
+      throw new UnsupportedOperationException(
+              "Parameter \"" + parameterString.getKey() + "\" does not appear to be the name of a field in the specified AgentModel class");
+    } catch (SecurityException e1) {
+      throw new UnsupportedOperationException(
+              "Parameter \"" + parameterString.getKey() + "\" corresponds to a field in an AgentModel class which threw a SecurityException", e1);
+    }
+
+    Class<?> fieldClass = f.getType();
+    if (fieldClass.equals(Double.class)) {
+      parameters.put(f, Double.parseDouble(parameterString.getValue()));
+    } else if (fieldClass.equals(Integer.class)) {
+      parameters.put(f, Integer.parseInt(parameterString.getValue()));
+    } else if (fieldClass.equals(Boolean.class)) {
+      parameters.put(f, Boolean.parseBoolean(parameterString.getValue()));
+    } else {
+      throw new UnsupportedOperationException(
+              this.getClass().getName() + " only supports parameter types of Double, Integer, and Boolean");
+    }
+  }
+}
+
 @Override
 public void readXMLConfig(Element e) {
-  String className = e.getAttribute("agentClass");
-  Class<?> agentClass = null;
-  try {
-    agentClass = Class.forName(className);
-  } catch (ClassNotFoundException e1) {
-    throw new RuntimeException("Agent class " + className + " not found.  Check classpath?");
-  }
+  agentClassName = e.getAttribute("agentClass");
 
   NodeList nl = e.getChildNodes();
   for (int i = 0; i < nl.getLength(); i++) {
@@ -69,48 +104,22 @@ public void readXMLConfig(Element e) {
       if (!elementName.equalsIgnoreCase("Parameter"))
         throw new UnsupportedOperationException("DefaultAgentFactory must have only Parameter child elements");
 
-      // Find the field
+      /*
+       * Read the name/value strings and store in Map<String,String> parameterStrings for later reflection
+       * by initReflection().
+       */
       String nameString = child.getAttribute("name");
-      Field f = null;
       if (nameString == null)
         throw new UnsupportedOperationException("Parameter must specify a name=\"<id>\" which matches a field in a the Agent class");
-
-      try {
-        f = agentClass.getField(nameString);
-        f.setAccessible(true);
-      } catch (NoSuchFieldException e1) {
-        throw new UnsupportedOperationException(
-                "Parameter \"" + nameString + "\" does not appear to be the name of a field in the specified AgentModel class");
-      } catch (SecurityException e1) {
-        throw new UnsupportedOperationException(
-                "Parameter \"" + nameString + "\" corresponds to a field in an AgentModel class which threw a SecurityException", e1);
-      }
-
       String valueString = child.getAttribute("value");
       if (valueString == null)
         throw new UnsupportedOperationException("Parameter must specify a value=\"<foo>\"");
-
-      Class<?> fieldClass = f.getType();
-      if (fieldClass.equals(Double.class)) {
-        parameters.put(f, Double.parseDouble(valueString));
-      } else if (fieldClass.equals(Integer.class)) {
-        parameters.put(f, Integer.parseInt(valueString));
-      } else if (fieldClass.equals(Boolean.class)) {
-        parameters.put(f, Boolean.parseBoolean(valueString));
-      } else {
-        throw new UnsupportedOperationException(
-                this.getClass().getName() + " only supports parameter types of Double, Integer, and Boolean");
-      }
+      parameterStrings.put(nameString,valueString);
 
     }
   }
 
-  // TODO: fix! add a check
-  // if (!modelClass. isAssignableFrom(AgentModel.class))
-  // throw new IllegalArgumentException(
-  // "Agent model class must implement AgentModel interface");
-  this.agentClass = (Class<? extends Agent>) agentClass;
-
+  initReflection();
 }
 
 @Override
@@ -129,7 +138,7 @@ public void writeXMLConfig(Element e) {
 
 @Override
 public void resumeFromCheckpoint() {
-
+  initReflection();
 }
 
 }

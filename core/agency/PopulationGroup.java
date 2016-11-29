@@ -71,7 +71,7 @@ public void writeXMLConfig(Element e) {
 
 @Override
 public void resumeFromCheckpoint() {
-
+  populations.forEach(Population::resumeFromCheckpoint);
 }
 
 public Stream<Agent<? extends Individual>> shuffledAgentStream() {
