@@ -1,5 +1,6 @@
 package agency.models.simple;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -88,6 +89,11 @@ public AgencyData getStepData() {
   sd.label = "bar";
   sd.randomInt = RandomUtils.nextInt(0, 100_000);
   return sd;
+}
+
+@Override
+public void enableDebug(PrintStream out) {
+  // No debugging supported.
 }
 
 }

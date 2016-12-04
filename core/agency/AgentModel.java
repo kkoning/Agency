@@ -2,6 +2,8 @@ package agency;
 
 import agency.data.AgencyData;
 
+import java.io.PrintStream;
+
 public interface AgentModel {
 // Agent Models evaluate agents...
 
@@ -61,4 +63,17 @@ public AgencyData getSummaryData();
  * @return An object that contains per-step data for this agent model.
  */
 public AgencyData getStepData();
+
+
+/**
+ * This function is called before the start of an agent model, and indicates
+ * that it should print a detailed log of its operation to the provided
+ * PrintStream.  Actually providing an implmentation of this function
+ * is optional; it can be ignored, though, of course, the debugging functionality
+ * it would otherwise provide will not be available.
+ *
+ * @param out The PrintStream that the debugging log should be written to.
+ */
+public void enableDebug(PrintStream out);
+
 }

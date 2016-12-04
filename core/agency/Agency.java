@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.logging.Logger;
 
+import agency.eval.DebugEvaluator;
+import agency.eval.LocalEvaluator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -44,6 +46,9 @@ public static void main(String[] args) {
   // Specify # of generations to evolve
   Option generations = Option.builder("g").required(true).longOpt("generations").hasArg().type(Integer.class).build();
   options.addOption(generations);
+
+  Option debugMode = Option.builder("d").longOpt("debug").hasArg(false).required(false).build();
+  options.addOption(debugMode);
 
   // Help
   Option help = Option.builder().longOpt("help").build();
@@ -97,12 +102,18 @@ public static void main(String[] args) {
     // From a checkpoint file, if specified.
     File serializedFile = new File(arg(cmd, checkpointFile));
     env = Environment.readCheckpoint(serializedFile);
-    env.resumeFromCheckpoint();
   }
 
   if (env == null) {
     out.println("Unknown error in creating environment, please file a bug report.");
     return;
+  }
+
+  /*
+   * If running in debug mode, force the use of the (serial) LocalEvaluator
+   */
+  if (has(cmd,debugMode)) {
+    env.evaluator = new DebugEvaluator();
   }
 
   System.out.println("Evolving environment for " + generationsToEvolve + " generations");

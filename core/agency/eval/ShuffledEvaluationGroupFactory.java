@@ -130,6 +130,7 @@ static class ShuffledEvaluationGroupHelper implements Supplier<EvaluationGroup> 
   @Override
   synchronized public EvaluationGroup get() {
     EvaluationGroup eg = new EvaluationGroup();
+    eg.generation = env.getGeneration();
     eg.setModel(env.getAgentModelFactory().createAgentModel());
     for (Map.Entry<Iterator<Agent<? extends Individual>>, Integer> entry : na.entrySet()) {
       for (int i = 0; i < entry.getValue(); i++) {

@@ -6,3 +6,6 @@ Agency is a system for agent-based models and evolutionary computation.
 Please see the documentation at [URL].
 
 Options:
+
+ -d  --debug    Force the use of the serial and local LocalEvaluator for
+                debugging purposes (e.g., of agent models)

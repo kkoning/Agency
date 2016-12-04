@@ -22,6 +22,8 @@ Object summaryData;
 Map<Integer, AgencyData> perStepData = new TreeMap<>();
 boolean                  finished    = false;
 
+int generation;
+
 public Object getSummaryData() {
   return summaryData;
 }
