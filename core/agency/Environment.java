@@ -255,7 +255,9 @@ public static Environment readCheckpoint(File serializedFile) {
     FileInputStream fis = new FileInputStream(serializedFile);
     ObjectInputStream ois = new ObjectInputStream(fis);
     Object o = ois.readObject();
-    return (Environment) o;
+    Environment env = (Environment) o;
+    env.resumeFromCheckpoint();
+    return env;
   } catch (Exception e) {
     throw new RuntimeException(e);
   }
