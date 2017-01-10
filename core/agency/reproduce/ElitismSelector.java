@@ -86,6 +86,7 @@ public Individual generate() {
 
 @Override
 public void setSourcePopulation(Population pop) {
+  // Function local #numElites, so it gets reset every generation
   Integer numElites = this.numElites;
   if (numElites == null)
     numElites = (int) (pop.size() * proportionElites);
