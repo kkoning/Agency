@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import agency.data.*;
-import com.sun.tools.doclint.Env;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -137,7 +136,7 @@ public void resumeFromCheckpoint() {
   evaluator.resumeFromCheckpoint();
 }
 
-private static void fitnessAccumulator(
+static void fitnessAccumulator(
         Map<Individual, Fitness> collecting,
         Map<Individual, Fitness> collected) {
   for (Map.Entry<Individual, Fitness> newEntry : collected.entrySet()) {
@@ -150,7 +149,7 @@ private static void fitnessAccumulator(
   }
 }
 
-private static Map<Individual, Fitness> newFitnessMap() {
+static Map<Individual, Fitness> newFitnessMap() {
   return new IdentityHashMap<>();
 }
 
@@ -227,7 +226,7 @@ public void evolve() {
   // TODO: Balance populations inside of populationGroups.
 
   // Reproduce populations
-  populationGroups.parallelStream().forEach(pg -> pg.reproduce());
+  populationGroups.parallelStream().forEach(pg -> pg.reproduce(this));
   //  for (PopulationGroup popGroup : populationGroups) {
   //    popGroup.reproduce();
   //  }
@@ -366,7 +365,7 @@ private static class ModelSummaryDataHelper implements Runnable {
   @Override
   public void run() {
     for (EvaluationGroup eg : evaluatedGroups) {
-      AgencyData summaryData = eg.getModel().getSummaryData();
+      Object summaryData = eg.getModel().getSummaryData();
       UUID modelUUID = eg.getId();
       reporter.writeSummaryData(generation, modelUUID, summaryData);
     }
@@ -387,7 +386,7 @@ private static class ModelStepDataHelper implements Runnable {
   @Override
   public void run() {
     for (EvaluationGroup eg : evaluatedGroups) {
-      Map<Integer, AgencyData> perStepData = eg.getPerStepData();
+      Map<Integer, Object> perStepData = eg.getPerStepData();
       UUID modelUUID = eg.getId();
       reporter.writePerStepData(generation, modelUUID, perStepData);
     }

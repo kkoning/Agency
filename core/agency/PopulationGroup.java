@@ -87,14 +87,31 @@ void addPopulation(Population population) {
   this.populations.add(population);
 }
 
-public void reproduce() {
+public void reproduce(Environment env) {
   for (Population pop : populations) {
-    pop.reproduce();
+    pop.reproduce(env);
   }
 }
 
 public List<Population> getPopulations() {
   return populations;
+}
+
+public Optional<Population> getPopulation(String popID) {
+  Population toReturn = null;
+  for (Population p : populations) {
+    if (p.getId().equals(popID)) {
+      if (toReturn != null)
+        throw new RuntimeException("Population Group " + getId() +
+                " has two populations with id = " + popID);
+      else {
+        toReturn = p;
+        break;
+      }
+
+    }
+  }
+  return Optional.of(toReturn);
 }
 
 public String getId() {

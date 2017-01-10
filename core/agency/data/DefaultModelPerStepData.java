@@ -15,11 +15,12 @@ public DefaultModelPerStepData() {
 }
 
 @Override
-public void writePerStepData(int generation, UUID modelUUID, Map<Integer, AgencyData> allStepsData) {
+public void writePerStepData(int generation, UUID modelUUID, Map<Integer,
+        Object> allStepsData) {
   if (allStepsData != null) {
-    for (Map.Entry<Integer, AgencyData> perStepData : allStepsData.entrySet()) {
+    for (Map.Entry<Integer, Object> perStepData : allStepsData.entrySet()) {
       Integer step = perStepData.getKey();
-      AgencyData stepData = perStepData.getValue();
+      Object stepData = perStepData.getValue();
       write(stepData, generation, modelUUID, step);
     }
   }

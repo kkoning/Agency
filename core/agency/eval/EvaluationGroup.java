@@ -19,7 +19,7 @@ AgentModel model;
 
 // Model data outputs
 Object summaryData;
-Map<Integer, AgencyData> perStepData = new TreeMap<>();
+Map<Integer, Object> perStepData = new TreeMap<>();
 boolean                  finished    = false;
 
 int generation;
@@ -28,7 +28,7 @@ public Object getSummaryData() {
   return summaryData;
 }
 
-public Map<Integer, AgencyData> getPerStepData() {
+public Map<Integer, Object> getPerStepData() {
   return perStepData;
 }
 
@@ -61,9 +61,9 @@ public void run() {
   for (int step = 0; step < maxSteps; step++) {
 
     // Per-step data; if reported
-    AgencyData ad = model.getStepData();
-    if (ad != null)
-      perStepData.put(step, ad);
+    Object data = model.getStepData();
+    if (data != null)
+      perStepData.put(step, data);
 
     boolean doneEarly = model.step();
     if (doneEarly)

@@ -15,14 +15,18 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by liara on 9/30/16.
+ Created by liara on 9/30/16.
+
+ TODO: Write documentation for this class.
+
  */
 public class DataOutput implements XMLConfigurable {
 
 private static final String separatorChar = ",";
-protected String       outputFilename;
-protected boolean      headersOutput;
-protected List<String> prefixHeaders;
+protected String                   outputFilename;
+protected boolean                  headersOutput;
+protected List<String>             prefixHeaders;
+protected DefaultDataObjectManager ddom;
 
 transient private Lock                 writeLock;
 transient private BufferedOutputStream out;
@@ -46,6 +50,14 @@ public void setPrefixHeaders(String[] headers) {
 
   for (String header : headers)
     prefixHeaders.add(header);
+}
+
+public void write(Object pojoObject, Object... prefixes) {
+  if (ddom == null)
+    ddom = new DefaultDataObjectManager();
+
+  AgencyData ad = ddom.process(pojoObject);
+  write(ad,prefixes);
 }
 
 

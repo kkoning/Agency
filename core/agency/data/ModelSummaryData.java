@@ -9,6 +9,6 @@ import java.util.UUID;
  */
 public interface ModelSummaryData extends XMLConfigurable {
 
-public void writeSummaryData(int generation, UUID modelUUID, AgencyData data);
+public void writeSummaryData(int generation, UUID modelUUID, Object data);
 
 }
