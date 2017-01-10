@@ -49,11 +49,12 @@ public int getMaxSteps();
 /**
  * An object that contains summary data for this agent model. This should be
  * structured as a java object; reflection will be used to extract the
- * property variable names to use as data file headers.
+ * property variable names to use as data file headers.  Note that <b>only
+ * public fields will be written!</b>
  *
  * @return An object that contains summary data for this agent model.
  */
-public AgencyData getSummaryData();
+public Object getSummaryData();
 
 /**
  * An object that contains per-step data for this agent model. This should be
@@ -62,7 +63,7 @@ public AgencyData getSummaryData();
  *
  * @return An object that contains per-step data for this agent model.
  */
-public AgencyData getStepData();
+public Object getStepData();
 
 
 /**
