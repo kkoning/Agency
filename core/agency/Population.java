@@ -24,9 +24,12 @@ String                        id;
 Integer                       initialSize;
 List<Individual>              individuals;
 IndividualFactory<Individual> indFactory;
-AgentFactory                  agentFactory;
-BreedingPipeline              breedingPipeline;
-List<PopulationData>          populationDataOutputs;
+AgentFactory agentFactory;
+BreedingPipeline     breedingPipeline;
+List<PopulationData> populationDataOutputs;
+
+Integer evolveCycle;
+int evolveCycleStart, evolveCycleStop;
 
 public Population(IndividualFactory<? extends Individual> indFactory,
                   AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
@@ -62,6 +65,20 @@ public void readXMLConfig(Element e) {
     if (!idString.equalsIgnoreCase(""))
       id = idString;
 
+  String evolveCycleString = e.getAttribute("evolveCycle");
+  if (evolveCycleString != null) {
+    if (!evolveCycleString.equalsIgnoreCase("")) {
+      // TODO: Better error messages
+      this.evolveCycle = Integer.parseInt(evolveCycleString);
+      String evolveCycleStartString = e.getAttribute("evolveCycleStart");
+      String evolveCycleStopString = e.getAttribute("evolveCycleStop");
+      this.evolveCycleStart = Integer.parseInt(evolveCycleStartString);
+      this.evolveCycleStop = Integer.parseInt(evolveCycleStopString);
+    }
+  }
+
+
+
   NodeList nl = e.getChildNodes();
   for (int i = 0; i < nl.getLength(); i++) {
     Node node = nl.item(i);
@@ -84,7 +101,7 @@ public void readXMLConfig(Element e) {
           throw new UnsupportedOperationException(
                   "Population cannot have more than one BreedingPipeline");
         breedingPipeline = (BreedingPipeline) xc;
-      }  else if (xc instanceof PopulationData) {
+      } else if (xc instanceof PopulationData) {
         PopulationData pd = (PopulationData) xc;
         populationDataOutputs.add(pd);
       } else {
@@ -140,11 +157,23 @@ public void resumeFromCheckpoint() {
   populationDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
 }
 
-public void reproduce() {
-  reproduce(this.size());
+public void reproduce(Environment env) {
+  reproduce(env, this.size());
 }
 
-public void reproduce(int populationSize) {
+public void reproduce(Environment env, int populationSize) {
+  if (evolveCycle != null) {
+    int genInCycle = env.generation % evolveCycle;
+    if (genInCycle <= evolveCycleStart)
+      return; // without a selection/breeding phase
+    if (genInCycle > evolveCycleStop)
+      return; // without a selection/breeding phase
+  }
+  definatelyReproduce(env,populationSize);
+}
+
+public void definatelyReproduce(Environment env, int populationSize) {
+
   breedingPipeline.setSourcePopulation(this);
   List<Individual> newPopulation = IntStream.range(0, populationSize)
           .mapToObj((i) -> {
@@ -160,7 +189,7 @@ public int size() {
   return individuals.size();
 }
 
-Agent<? extends Individual> createAgent(Individual ind) {
+protected Agent<? extends Individual> createAgent(Individual ind) {
   return agentFactory.createAgent(ind);
 }
 
@@ -207,4 +236,9 @@ public String toString() {
 public String getId() {
   return id;
 }
+
+public AgentFactory getAgentFactory() {
+  return agentFactory;
+}
+
 }
