@@ -125,6 +125,9 @@ public static void main(String[] args) {
   System.out.println("Saving checkpoint at generation " + env.getGeneration());
   Environment.saveCheckpoint(env);
 
+  // Signal environment to close, so that it can flush and close all files.
+  env.close();
+
 
 }
 

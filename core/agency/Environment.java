@@ -371,8 +371,21 @@ public PopulationGroup getPopulationGroup(String id) {
   return null;
 }
 
-private void close() {
+public void close() {
+
+  // The checkpoints archive, if active.
+  if (checkpointsArchive != null) {
+    try {
+      checkpointsArchive.flush();
+      checkpointsArchive.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   // TODO: Make sure all files are flushed, etc...
+  // Populations and their data output files
+  // Data output files owned by this Environment, etc...
 }
 
 void addPopulationGroup(PopulationGroup pg) {
