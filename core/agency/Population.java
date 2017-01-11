@@ -18,18 +18,19 @@ import agency.reproduce.BreedingPipeline;
 import agency.util.RandomStream;
 
 public class Population implements Serializable, XMLConfigurable {
-private static final long serialVersionUID = 4940155716065322170L;
 
-String                        id;
-Integer                       initialSize;
-List<Individual>              individuals;
+private static final long serialVersionUID = 4940155716065322170L;
+public List<Individual> individuals;
+
+String  id;
+Integer initialSize;
 IndividualFactory<Individual> indFactory;
-AgentFactory agentFactory;
-BreedingPipeline     breedingPipeline;
-List<PopulationData> populationDataOutputs;
+AgentFactory                  agentFactory;
+BreedingPipeline              breedingPipeline;
+List<PopulationData>          populationDataOutputs;
 
 Integer evolveCycle;
-int evolveCycleStart, evolveCycleStop;
+int     evolveCycleStart, evolveCycleStop;
 
 public Population(IndividualFactory<? extends Individual> indFactory,
                   AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
@@ -76,7 +77,6 @@ public void readXMLConfig(Element e) {
       this.evolveCycleStop = Integer.parseInt(evolveCycleStopString);
     }
   }
-
 
 
   NodeList nl = e.getChildNodes();
@@ -145,16 +145,16 @@ public void writeXMLConfig(Element e) {
 
 }
 
-public List<PopulationData> getPopulationDataOutputs() {
-  return populationDataOutputs;
-}
-
 @Override
 public void resumeFromCheckpoint() {
   indFactory.resumeFromCheckpoint();
   agentFactory.resumeFromCheckpoint();
   breedingPipeline.resumeFromCheckpoint();
   populationDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
+}
+
+public List<PopulationData> getPopulationDataOutputs() {
+  return populationDataOutputs;
 }
 
 public void reproduce(Environment env) {
@@ -169,7 +169,7 @@ public void reproduce(Environment env, int populationSize) {
     if (genInCycle > evolveCycleStop)
       return; // without a selection/breeding phase
   }
-  definatelyReproduce(env,populationSize);
+  definatelyReproduce(env, populationSize);
 }
 
 public void definatelyReproduce(Environment env, int populationSize) {
@@ -189,10 +189,6 @@ public int size() {
   return individuals.size();
 }
 
-protected Agent<? extends Individual> createAgent(Individual ind) {
-  return agentFactory.createAgent(ind);
-}
-
 public Stream<Individual> allIndividuals() {
   return individuals.stream();
 }
@@ -207,6 +203,9 @@ public Stream<Agent<? extends Individual>> shuffledAgents() {
   return shuffledIndividuals().map(i -> createAgent(i));
 }
 
+protected Agent<? extends Individual> createAgent(Individual ind) {
+  return agentFactory.createAgent(ind);
+}
 
 Stream<Individual> shuffledIndividuals() {
   RandomStream<Individual> rs = new RandomStream<>();

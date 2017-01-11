@@ -8,6 +8,9 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import agency.data.*;
 import org.w3c.dom.Document;
@@ -22,14 +25,17 @@ public class Environment implements XMLConfigurable, Serializable {
 
 String                 id;
 List<PopulationGroup>  populationGroups;
-EvaluationGroupFactory evaluationGroupFactory;
+public EvaluationGroupFactory evaluationGroupFactory;
 AgentModelFactory<?>   agentModelFactory;
 
 List<ModelSummaryData>      modelSummaryDataOutputs;
 List<ModelPerStepData>      modelPerStepDataOutputs;
 List<EnvironmentStatistics> stats;
 
-Evaluator evaluator;
+transient ZipOutputStream checkpointsArchive;
+Integer checkpointEvery;
+
+public Evaluator evaluator;
 
 int generation = 0;
 
@@ -51,6 +57,14 @@ public void readXMLConfig(Element e) {
   // - EvaluationGroupFactory (check)
   // - Evaluator (check)
   // - AgentModelFactory
+
+  String checkpointEveryString = e.getAttribute("checkpointEvery");
+  if (checkpointEveryString != null) {
+    if (!checkpointEveryString.isEmpty()) {
+      checkpointEvery = Integer.parseInt(checkpointEveryString);
+      openCheckpointArchive();
+    }
+  }
 
   NodeList nl = e.getChildNodes();
   for (int i = 0; i < nl.getLength(); i++) {
@@ -97,6 +111,50 @@ public void readXMLConfig(Element e) {
 
 }
 
+
+private void openCheckpointArchive() {
+  try {
+    File f = new File("checkpoints-fromGen" + generation + ".zip");
+    FileOutputStream fos = new FileOutputStream(f);
+    checkpointsArchive = new ZipOutputStream(fos);
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+}
+
+private void closeCheckpointArchive() {
+  if (checkpointsArchive == null)
+    return;
+
+  try {
+    checkpointsArchive.flush();
+    checkpointsArchive.close();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+}
+
+private void saveCheckpointToArchive() {
+  // TODO: Better error handling
+
+  try {
+    ZipEntry e = new ZipEntry("checkpoint.gen-" + generation + ".ser");
+    checkpointsArchive.putNextEntry(e);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(baos);
+    oos.writeObject(this);
+    oos.flush();
+    oos.close();
+
+    checkpointsArchive.write(baos.toByteArray(),0,baos.size());
+    checkpointsArchive.closeEntry();
+    checkpointsArchive.flush();
+  } catch (IOException e1) {
+    e1.printStackTrace();
+  }
+
+}
+
 @Override
 public void writeXMLConfig(Element e) {
   Document d = e.getOwnerDocument();
@@ -136,7 +194,7 @@ public void resumeFromCheckpoint() {
   evaluator.resumeFromCheckpoint();
 }
 
-static void fitnessAccumulator(
+public static void fitnessAccumulator(
         Map<Individual, Fitness> collecting,
         Map<Individual, Fitness> collected) {
   for (Map.Entry<Individual, Fitness> newEntry : collected.entrySet()) {
@@ -149,7 +207,7 @@ static void fitnessAccumulator(
   }
 }
 
-static Map<Individual, Fitness> newFitnessMap() {
+public static Map<Individual, Fitness> newFitnessMap() {
   return new IdentityHashMap<>();
 }
 
@@ -313,6 +371,9 @@ public PopulationGroup getPopulationGroup(String id) {
   return null;
 }
 
+private void close() {
+  // TODO: Make sure all files are flushed, etc...
+}
 
 void addPopulationGroup(PopulationGroup pg) {
   this.populationGroups.add(pg);
@@ -350,6 +411,8 @@ class PopulationMap extends TreeMap<Integer, Population> {
   }
 
 }
+
+
 
 private static class ModelSummaryDataHelper implements Runnable {
   int                   generation;
