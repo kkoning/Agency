@@ -118,6 +118,11 @@ public String getId() {
   return id;
 }
 
+public void close() {
+  for (Population pop : populations)
+    pop.close();
+}
+
 public static class IndividualPopulationPair {
   Individual ind;
   Population p;

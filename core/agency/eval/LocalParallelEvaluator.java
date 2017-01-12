@@ -18,6 +18,11 @@ public Stream<EvaluationGroup> evaluate(Stream<EvaluationGroup> evaluationGroups
 }
 
 @Override
+public void close() {
+  // Unnecessary
+}
+
+@Override
 public void readXMLConfig(Element e) {
   // No configuration required
 }

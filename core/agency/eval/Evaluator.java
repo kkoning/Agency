@@ -7,4 +7,5 @@ import agency.XMLConfigurable;
 public interface Evaluator extends XMLConfigurable {
 Stream<EvaluationGroup> evaluate(Stream<EvaluationGroup> evaluationGroups);
 
+void close();
 }

@@ -240,4 +240,8 @@ public AgentFactory getAgentFactory() {
   return agentFactory;
 }
 
+public void close() {
+  for (PopulationData pd : populationDataOutputs)
+    pd.close();
+}
 }

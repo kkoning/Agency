@@ -51,6 +51,11 @@ public Stream<EvaluationGroup> evaluate(Stream<EvaluationGroup> evaluationGroups
   return groups.stream();
 }
 
+@Override
+public void close() {
+  // Unnecessary
+}
+
 
 @Override
 public void readXMLConfig(Element e) {

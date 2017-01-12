@@ -290,6 +290,14 @@ public void evolve() {
   //  }
 
 
+
+  // Save checkpoint to archive, if appropriate
+  if (checkpointsArchive != null) {
+    if ((generation % checkpointEvery) == 0) {
+      saveCheckpointToArchive();
+    }
+  }
+
   generation++;
 }
 
@@ -383,9 +391,19 @@ public void close() {
     }
   }
 
-  // TODO: Make sure all files are flushed, etc...
-  // Populations and their data output files
-  // Data output files owned by this Environment, etc...
+  for (PopulationGroup pg : populationGroups)
+    pg.close();
+
+  evaluator.close();
+  agentModelFactory.close();
+  for (ModelSummaryData msd : modelSummaryDataOutputs)
+    msd.close();
+  for (ModelPerStepData mpsd : modelPerStepDataOutputs)
+    mpsd.close();
+  for (EnvironmentStatistics es : stats) {
+    es.close();
+  }
+
 }
 
 void addPopulationGroup(PopulationGroup pg) {

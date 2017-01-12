@@ -8,4 +8,6 @@ import agency.XMLConfigurable;
  */
 public interface EnvironmentStatistics extends XMLConfigurable {
 public void calculate(Environment env);
+
+void close();
 }

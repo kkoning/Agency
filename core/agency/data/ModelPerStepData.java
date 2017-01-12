@@ -10,4 +10,6 @@ import java.util.UUID;
  */
 public interface ModelPerStepData extends XMLConfigurable {
 void writePerStepData(int generation, UUID modelUUID, Map<Integer, Object> data);
+
+void close();
 }

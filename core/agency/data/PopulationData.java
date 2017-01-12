@@ -21,4 +21,5 @@ void fitnessLandscapeSample(int baseGeneration, int generationOffset, int
 
 void fitnessLandscapeClose();
 
+void close();
 }

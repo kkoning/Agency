@@ -178,5 +178,10 @@ public AgentModel createAgentModel() {
   return model;
 }
 
+@Override
+public void close() {
+  // Unnecessary
+}
+
 
 }
