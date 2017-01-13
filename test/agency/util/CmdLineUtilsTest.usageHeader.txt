@@ -1,0 +1,3 @@
+This file should be automatically read (it is calculated based
+on the main() class used) and used as the header for the cli
+help based on this command.

@@ -182,11 +182,16 @@ public static Document newDocument() {
 }
 
 public static XMLConfigurable getXMLConfigurableFromFile(String fileName) {
+  File inputFile = new File(fileName);
+  return getXMLConfigurableFromFile(inputFile);
+
+}
+
+public static XMLConfigurable getXMLConfigurableFromFile(File file) {
   XMLConfigurable toReturn = null;
 
   try {
-    File inputFile = new File(fileName);
-    Document doc = getDocBuilder().parse(inputFile);
+    Document doc = getDocBuilder().parse(file);
     Element e = doc.getDocumentElement();
     toReturn = initializeXMLConfigurable(e);
   } catch (SAXException e) {

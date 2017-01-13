@@ -2,8 +2,10 @@ package agency.data;
 
 import agency.*;
 import agency.eval.EvaluationGroup;
+import agency.util.CmdLineUtils;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +14,11 @@ import java.util.stream.Collectors;
 /**
  * Calculates a fitness landscape for a specified population.
  * <p>
- * The fitness landscape calculator is useful for understanding why a population is
- * evolving as it is.   Crawling the fitness landscape will be done by running
- * agents through the same breeding process (including mutation, if at all)
- * specified in the config file for that agent population, but with all fitnesses
- * equal to a default fitness to disable selection.
+ * The fitness landscape calculator is useful for understanding why a population
+ * is evolving as it is.   Crawling the fitness landscape will be done by
+ * running agents through the same breeding process (including mutation, if at
+ * all) specified in the config file for that agent population, but with all
+ * fitnesses equal to a default fitness to disable selection.
  * <p>
  * This can be a somewhat inefficient way of calculating a fitness landscape,
  * but should provide at least a minimally functional version regardless of the
@@ -24,7 +26,8 @@ import java.util.stream.Collectors;
  * versions (or sub-classes) of this class for specific species types.  For
  * example, see {@link DoubleVectorFitnessLandscapeGenerator}
  */
-public class FitnessLandscapeGenerator implements Runnable {
+public class FitnessLandscapeGenerator
+        implements Runnable {
 
 private static final Fitness zeroFitness = new SimpleFitness(0);
 
@@ -106,10 +109,11 @@ private       int            generationOffset;
 private int timesThrough;
 
 
-public FitnessLandscapeGenerator(Environment env, String populationGroupID,
-                                 String populationID, Integer generations,
-                                 Integer sampleEvery, Double growthRatio,
-                                 Integer times, String outputFile) {
+public FitnessLandscapeGenerator(
+        Environment env, String populationGroupID,
+        String populationID, Integer generations,
+        Integer sampleEvery, Double growthRatio,
+        Integer times, String outputFile) {
   this.env = env;
   this.populationGroupID = populationGroupID;
   this.populationID = populationID;
@@ -131,14 +135,85 @@ public FitnessLandscapeGenerator(Environment env, String populationGroupID,
 public static void main(String[] args) {
   // TODO: Currently in testing, implement command line parsing.
 
-  File serializedFile = new File("checkpoint.gen-1000.ser");
-  Environment env = Environment.readCheckpoint(serializedFile);
+  Options options = new Options();
 
-  FitnessLandscapeGenerator flg = new FitnessLandscapeGenerator(env,
-          "videoContent", "DirectlyEncodedVideoContentProviders",
-          100, 20, 2.0, 5, "landscape.csv");
+  Option cpf = CmdLineUtils.checkpointOption;
+  options.addOption(cpf);
 
-  flg.run();
+  Option popGroupString = Option.builder()
+                                .required()
+                                .hasArg()
+                                .argName("pg")
+                                .longOpt("populationGroup")
+                                .build();
+  options.addOption(popGroupString);
+
+  Option popString = Option.builder()
+                           .required()
+                           .hasArg()
+                           .argName("pg")
+                           .longOpt("populationGroup")
+                           .build();
+  options.addOption(popString);
+
+  Option generationsString = Option.builder()
+                                   .required()
+                                   .hasArg()
+                                   .argName("g")
+                                   .longOpt("generations")
+                                   .build();
+  options.addOption(generationsString);
+
+  Option sampleEveryString = Option.builder()
+                                   .hasArg()
+                                   .longOpt("sampleEvery")
+                                   .build();
+  options.addOption(sampleEveryString);
+
+  Option growthRatioString = Option.builder()
+                                   .hasArg()
+                                   .argName("r")
+                                   .longOpt("growthRatio")
+                                   .build();
+  options.addOption(growthRatioString);
+
+
+  Option timesString = Option.builder()
+                             .hasArg()
+                             .argName("t")
+                             .longOpt("times")
+                             .build();
+  options.addOption(timesString);
+
+  Option outputFileString = Option.builder()
+                                  .required()
+                                  .hasArg()
+                                  .argName("o")
+                                  .longOpt("out")
+                                  .build();
+  options.addOption(outputFileString);
+
+
+
+  // FIXME
+
+//  CommandLine cl = new
+//
+//  // Must read a checkpoint from a file
+//  File serializedFile = new File(CmdLineUtils.arg());
+//  Environment env = Environment.readCheckpoint(serializedFile);
+//
+//  FitnessLandscapeGenerator flg =
+//          new FitnessLandscapeGenerator(env,
+//                                        "videoContent",
+//                                        "DirectlyEncodedVideoContentProviders",
+//                                        100,
+//                                        20,
+//                                        2.0,
+//                                        5,
+//                                        "landscape.csv");
+//
+//  flg.run();
 
 
 }
@@ -147,9 +222,10 @@ public static void main(String[] args) {
 public void run() {
 
   // Always just use the first one.
-  if (writer == null)
+  if (writer == null) {
     throw new RuntimeException("Cannot write fitness landscape data for a " +
-            "population that does not have any PopulationData objects.");
+                               "population that does not have any PopulationData objects.");
+  }
 
   // Initialize starting population target size
   currentPopulationSizeTarget = pop.size();
@@ -157,10 +233,12 @@ public void run() {
   // TODO: 1/8/17 go through steps, growth, etc...
 
   writer.fitnessLandscapeOpen(outputFile);
-  for (timesThrough = 0; timesThrough < times; timesThrough++)
+  for (timesThrough = 0; timesThrough < times; timesThrough++) {
     for (generationOffset = 0; generationOffset < generations;
-         generationOffset++)
+         generationOffset++) {
       step();
+    }
+  }
   writer.fitnessLandscapeClose();
 
 
@@ -183,19 +261,21 @@ void step() {
 
   List<EvaluationGroup> unevaluated = new ArrayList<>();
 
-  for (int i = 0; i < ttregg; i++)
+  for (int i = 0; i < ttregg; i++) {
     env.evaluationGroupFactory.createEvaluationGroups(env)
-            .forEach(eg -> unevaluated.add(eg));
+                              .forEach(eg -> unevaluated.add(eg));
+  }
 
   List<EvaluationGroup> evaluatedGroups = env.evaluator
           .evaluate(unevaluated.stream()).collect(Collectors.toList());
 
   Map<Individual, Fitness> aggFitnesses = evaluatedGroups.parallelStream()
-          .map(eg -> eg.getResults()).collect(
-                  Environment::newFitnessMap,
-                  Environment::fitnessAccumulator,
-                  Environment::fitnessAccumulator
-          );
+                                                         .map(eg -> eg.getResults())
+                                                         .collect(
+                                                                 Environment::newFitnessMap,
+                                                                 Environment::fitnessAccumulator,
+                                                                 Environment::fitnessAccumulator
+                                                         );
 
   // Assign fitness
   aggFitnesses.entrySet().parallelStream().forEach(
@@ -207,7 +287,7 @@ void step() {
   if ((generationOffset % sampleEvery) == 0) {
     pop.allIndividuals().forEach(i -> {
       writer.fitnessLandscapeSample(baseGeneration,
-              generationOffset, timesThrough, i);
+                                    generationOffset, timesThrough, i);
     });
   }
 
