@@ -3,7 +3,9 @@ package agency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class NullAgentFactory implements AgentFactory {
+public class NullAgentFactory
+        implements AgentFactory {
+Individual ind;
 
 @Override
 public Agent<? extends Individual> createAgent(Individual ind) {

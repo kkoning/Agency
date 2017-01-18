@@ -18,8 +18,8 @@ import agency.reproduce.BreedingPipeline;
 import agency.util.RandomStream;
 
 public class Population implements Serializable, XMLConfigurable {
+public static final long serialVersionUID = 1L;
 
-private static final long serialVersionUID = 4940155716065322170L;
 public List<Individual> individuals;
 
 String  id;

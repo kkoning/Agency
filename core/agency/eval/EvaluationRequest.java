@@ -3,7 +3,7 @@ package agency.eval;
 import java.io.Serializable;
 
 public class EvaluationRequest implements Serializable {
-private static final long serialVersionUID = 2596102347817005463L;
+public static final long serialVersionUID = 1L;
 
 long serverTimeSent;
 long clientTimeReceived;

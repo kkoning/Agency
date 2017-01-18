@@ -6,6 +6,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class LocalParallelEvaluator implements Evaluator {
+public static final long serialVersionUID = 1L;
 
 @Override
 public Stream<EvaluationGroup> evaluate(Stream<EvaluationGroup> evaluationGroups) {

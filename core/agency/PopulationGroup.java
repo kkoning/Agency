@@ -12,8 +12,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class PopulationGroup implements Serializable, XMLConfigurable {
+public static final long serialVersionUID = 1L;
 
-private static final long serialVersionUID = -4325119773362195331L;
 
 String           id;
 List<Population> populations;

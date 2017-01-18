@@ -21,12 +21,15 @@ import agency.eval.EvaluationGroup;
 import agency.eval.EvaluationGroupFactory;
 import agency.eval.Evaluator;
 
-public class Environment implements XMLConfigurable, Serializable {
+public class Environment
+        implements XMLConfigurable, Serializable {
 
-String                 id;
-List<PopulationGroup>  populationGroups;
+public static final long serialVersionUID = 1L;
+
+String                id;
+List<PopulationGroup> populationGroups;
 public EvaluationGroupFactory evaluationGroupFactory;
-AgentModelFactory<?>   agentModelFactory;
+AgentModelFactory<?> agentModelFactory;
 
 List<ModelSummaryData>      modelSummaryDataOutputs;
 List<ModelPerStepData>      modelPerStepDataOutputs;
@@ -77,15 +80,18 @@ public void readXMLConfig(Element e) {
         populationGroups.add((PopulationGroup) xc);
       } else if (xc instanceof EvaluationGroupFactory) {
         if (evaluationGroupFactory != null)
-          throw new UnsupportedOperationException("Population can only have one EvaluationGroupFactory");
+          throw new UnsupportedOperationException(
+                  "Population can only have one EvaluationGroupFactory");
         evaluationGroupFactory = (EvaluationGroupFactory) xc;
       } else if (xc instanceof Evaluator) {
         if (evaluator != null)
-          throw new UnsupportedOperationException("Population can only have one Evaluator");
+          throw new UnsupportedOperationException(
+                  "Population can only have one Evaluator");
         evaluator = (Evaluator) xc;
       } else if (xc instanceof AgentModelFactory) {
         if (agentModelFactory != null)
-          throw new UnsupportedOperationException("Population can only have one AgentModelFactory");
+          throw new UnsupportedOperationException(
+                  "Population can only have one AgentModelFactory");
         agentModelFactory = (AgentModelFactory<?>) xc;
       } else if (xc instanceof ModelPerStepData) {
         modelPerStepDataOutputs.add((ModelPerStepData) xc);
@@ -98,16 +104,19 @@ public void readXMLConfig(Element e) {
   }
 
   if (populationGroups.size() < 1)
-    throw new UnsupportedOperationException("Environment must have at least one Population Group");
+    throw new UnsupportedOperationException(
+            "Environment must have at least one Population Group");
 
   if (evaluationGroupFactory == null)
-    throw new UnsupportedOperationException("Environment must have an EvaluationGroupFactory");
+    throw new UnsupportedOperationException(
+            "Environment must have an EvaluationGroupFactory");
 
   if (evaluator == null)
     throw new UnsupportedOperationException("Environment must have an Evaluator");
 
   if (agentModelFactory == null)
-    throw new UnsupportedOperationException("Environment must have an AgentModelFactory");
+    throw new UnsupportedOperationException(
+            "Environment must have an AgentModelFactory");
 
 }
 
@@ -122,44 +131,16 @@ private void openCheckpointArchive() {
   }
 }
 
-private void closeCheckpointArchive() {
-  if (checkpointsArchive == null)
-    return;
 
-  try {
-    checkpointsArchive.flush();
-    checkpointsArchive.close();
-  } catch (IOException e) {
-    e.printStackTrace();
-  }
-}
 
-private void saveCheckpointToArchive() {
-  // TODO: Better error handling
 
-  try {
-    ZipEntry e = new ZipEntry("checkpoint.gen-" + generation + ".ser");
-    checkpointsArchive.putNextEntry(e);
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ObjectOutputStream oos = new ObjectOutputStream(baos);
-    oos.writeObject(this);
-    oos.flush();
-    oos.close();
-
-    checkpointsArchive.write(baos.toByteArray(),0,baos.size());
-    checkpointsArchive.closeEntry();
-    checkpointsArchive.flush();
-  } catch (IOException e1) {
-    e1.printStackTrace();
-  }
-
-}
 
 @Override
 public void writeXMLConfig(Element e) {
   Document d = e.getOwnerDocument();
   for (PopulationGroup popGroup : populationGroups) {
-    Element popGroupE = Config.createNamedElement(d, popGroup, "PopulationGroup");
+    Element popGroupE =
+            Config.createNamedElement(d, popGroup, "PopulationGroup");
     e.appendChild(popGroupE);
   }
   Element egfE = Config.createUnnamedElement(d, evaluationGroupFactory);
@@ -184,8 +165,9 @@ public void writeXMLConfig(Element e) {
 
 @Override
 public void resumeFromCheckpoint() {
-  for (PopulationGroup pg : populationGroups)
+  for (PopulationGroup pg : populationGroups) {
     pg.resumeFromCheckpoint();
+  }
   evaluationGroupFactory.resumeFromCheckpoint();
   agentModelFactory.resumeFromCheckpoint();
   modelSummaryDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
@@ -211,18 +193,33 @@ public static Map<Individual, Fitness> newFitnessMap() {
   return new IdentityHashMap<>();
 }
 
+// TODO: Shouldn't this be called somewhere?
+private void closeCheckpointArchive() {
+  if (checkpointsArchive == null)
+    return;
+  try {
+    checkpointsArchive.flush();
+    checkpointsArchive.close();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+}
+
 public void evolve() {
 
-  Stream<EvaluationGroup> egs = evaluationGroupFactory.createEvaluationGroups(this);
-  List<EvaluationGroup> evaluatedGroups = evaluator.evaluate(egs).collect(Collectors.toList());
+  Stream<EvaluationGroup> egs =
+          evaluationGroupFactory.createEvaluationGroups(this);
+  List<EvaluationGroup> evaluatedGroups =
+          evaluator.evaluate(egs).collect(Collectors.toList());
 
   // Aggregate fitnesses
   Map<Individual, Fitness> aggFitnesses = evaluatedGroups.parallelStream()
-          .map(eg -> eg.getResults()).collect(
-                  Environment::newFitnessMap,
-                  Environment::fitnessAccumulator,
-                  Environment::fitnessAccumulator
-          );
+                                                         .map(eg -> eg.getResults())
+                                                         .collect(
+                                                                 Environment::newFitnessMap,
+                                                                 Environment::fitnessAccumulator,
+                                                                 Environment::fitnessAccumulator
+                                                         );
 
   // Assign fitness
   aggFitnesses.entrySet().parallelStream().forEach(
@@ -238,13 +235,16 @@ public void evolve() {
   ExecutorService executorService = ForkJoinPool.commonPool();
   List<FutureTask> outputTasks = new ArrayList<>();
   for (ModelSummaryData reporter : modelSummaryDataOutputs) {
-    ModelSummaryDataHelper msdh = new ModelSummaryDataHelper(getGeneration(), reporter, evaluatedGroups);
+    ModelSummaryDataHelper msdh = new ModelSummaryDataHelper(getGeneration(),
+                                                             reporter,
+                                                             evaluatedGroups);
     FutureTask<Boolean> task = new FutureTask<>(msdh, true);
     outputTasks.add(task);
     executorService.execute(task);
   }
   for (ModelPerStepData reporter : modelPerStepDataOutputs) {
-    ModelStepDataHelper msdh = new ModelStepDataHelper(generation, reporter, evaluatedGroups);
+    ModelStepDataHelper msdh =
+            new ModelStepDataHelper(generation, reporter, evaluatedGroups);
     FutureTask<Boolean> task = new FutureTask<>(msdh, true);
     outputTasks.add(task);
     executorService.execute(task);
@@ -252,7 +252,8 @@ public void evolve() {
   for (PopulationGroup pg : populationGroups) {
     for (Population p : pg.getPopulations()) {
       for (PopulationData pdo : p.getPopulationDataOutputs()) {
-        PopulationDataOutputHelper pdoh = new PopulationDataOutputHelper(generation, pdo, p);
+        PopulationDataOutputHelper pdoh =
+                new PopulationDataOutputHelper(generation, pdo, p);
         FutureTask<Boolean> task = new FutureTask<>(pdoh, true);
         outputTasks.add(task);
         executorService.execute(task);
@@ -290,7 +291,6 @@ public void evolve() {
   //  }
 
 
-
   // Save checkpoint to archive, if appropriate
   if (checkpointsArchive != null) {
     if ((generation % checkpointEvery) == 0) {
@@ -299,9 +299,7 @@ public void evolve() {
   }
 
   generation++;
-}
-
-public static void saveCheckpoint(Environment env) {
+}public static void saveCheckpoint(Environment env) {
   // TODO: Under construction.
   try {
     String testFileName = "checkpoint.gen-" + env.getGeneration() + ".ser";
@@ -315,7 +313,26 @@ public static void saveCheckpoint(Environment env) {
 
 }
 
-public static Environment readCheckpoint(File serializedFile) {
+private void saveCheckpointToArchive() {
+  // TODO: Better error handling
+
+  try {
+    ZipEntry e = new ZipEntry("checkpoint.gen-" + generation + ".ser");
+    checkpointsArchive.putNextEntry(e);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(baos);
+    oos.writeObject(this);
+    oos.flush();
+    oos.close();
+
+    checkpointsArchive.write(baos.toByteArray(), 0, baos.size());
+    checkpointsArchive.closeEntry();
+    checkpointsArchive.flush();
+  } catch (IOException e1) {
+    e1.printStackTrace();
+  }
+
+}public static Environment readCheckpoint(File serializedFile) {
   try {
     FileInputStream fis = new FileInputStream(serializedFile);
     ObjectInputStream ois = new ObjectInputStream(fis);
@@ -324,26 +341,14 @@ public static Environment readCheckpoint(File serializedFile) {
     env.resumeFromCheckpoint();
     return env;
   } catch (Exception e) {
-    throw new RuntimeException(e);
+    throw new RuntimeException("ERROR: Could not load checkpoint from " +
+                               serializedFile + ".  Reason: " + e.getMessage());
   }
 }
 
-
-private static class EnvStatsOutputHelper implements Runnable {
-  EnvironmentStatistics stats;
-  Environment           env;
-
-  public EnvStatsOutputHelper(EnvironmentStatistics stats, Environment env) {
-    this.stats = stats;
-    this.env = env;
-  }
-
-  @Override
-  public void run() {
-    stats.calculate(env);
-  }
+public int getGeneration() {
+  return generation;
 }
-
 
 public EvaluationGroupFactory getEvaluationGroupFactory() {
   return evaluationGroupFactory;
@@ -367,16 +372,17 @@ public List<PopulationGroup> getPopulationGroups() {
 
 /**
  * @param id
- * @return the PopulationGroup in this environment with the specified id, or null if it does not exist.
+ * @return the PopulationGroup in this environment with the specified id, or
+ * null if it does not exist.
  */
-public PopulationGroup getPopulationGroup(String id) {
+public Optional<PopulationGroup> getPopulationGroup(String id) {
   if (id == null)
     return null;
   for (PopulationGroup pGroup : populationGroups) {
     if (id.equals(pGroup.id))
-      return pGroup;
+      return Optional.of(pGroup);
   }
-  return null;
+  return Optional.empty();
 }
 
 public void close() {
@@ -391,15 +397,18 @@ public void close() {
     }
   }
 
-  for (PopulationGroup pg : populationGroups)
+  for (PopulationGroup pg : populationGroups) {
     pg.close();
+  }
 
   evaluator.close();
   agentModelFactory.close();
-  for (ModelSummaryData msd : modelSummaryDataOutputs)
+  for (ModelSummaryData msd : modelSummaryDataOutputs) {
     msd.close();
-  for (ModelPerStepData mpsd : modelPerStepDataOutputs)
+  }
+  for (ModelPerStepData mpsd : modelPerStepDataOutputs) {
     mpsd.close();
+  }
   for (EnvironmentStatistics es : stats) {
     es.close();
   }
@@ -410,47 +419,32 @@ void addPopulationGroup(PopulationGroup pg) {
   this.populationGroups.add(pg);
 }
 
-public int getGeneration() {
-  return generation;
+private static class EnvStatsOutputHelper
+        implements Runnable {
+  EnvironmentStatistics stats;
+  Environment           env;
+
+  public EnvStatsOutputHelper(EnvironmentStatistics stats, Environment env) {
+    this.stats = stats;
+    this.env = env;
+  }
+
+  @Override
+  public void run() {
+    stats.calculate(env);
+  }
 }
 
-
-class PopulationMap extends TreeMap<Integer, Population> {
-  private static final long serialVersionUID = 4508501876898154219L;
-  int individualIndex = 0;
-
-  int totalIndividuals() {
-    return individualIndex;
-  }
-
-  void addPopulations(Collection<Population> pops) {
-    for (Population pop : pops)
-      addPopulation(pop);
-  }
-
-  void addPopulation(Population pop) {
-    put(individualIndex, pop);
-    individualIndex += pop.size();
-  }
-
-  Individual getIndividual(Integer position) {
-    Integer popStartsAt = lowerKey(position + 1);
-    Population pop = get(popStartsAt);
-    Integer popIndex = position - popStartsAt;
-    Individual toReturn = pop.individuals.get(popIndex);
-    return toReturn;
-  }
-
-}
-
-
-
-private static class ModelSummaryDataHelper implements Runnable {
+private static class ModelSummaryDataHelper
+        implements Runnable {
   int                   generation;
   ModelSummaryData      reporter;
   List<EvaluationGroup> evaluatedGroups;
 
-  ModelSummaryDataHelper(int generation, ModelSummaryData reporter, List<EvaluationGroup> evaluatedGroups) {
+  ModelSummaryDataHelper(
+          int generation,
+          ModelSummaryData reporter,
+          List<EvaluationGroup> evaluatedGroups) {
     this.generation = generation;
     this.reporter = reporter;
     this.evaluatedGroups = evaluatedGroups;
@@ -459,19 +453,23 @@ private static class ModelSummaryDataHelper implements Runnable {
   @Override
   public void run() {
     for (EvaluationGroup eg : evaluatedGroups) {
-      Object summaryData = eg.getModel().getSummaryData();
+      Object summaryData = eg.getSummaryData();
       UUID modelUUID = eg.getId();
       reporter.writeSummaryData(generation, modelUUID, summaryData);
     }
   }
 }
 
-private static class ModelStepDataHelper implements Runnable {
+private static class ModelStepDataHelper
+        implements Runnable {
   int                   generation;
   ModelPerStepData      reporter;
   List<EvaluationGroup> evaluatedGroups;
 
-  ModelStepDataHelper(int generation, ModelPerStepData reporter, List<EvaluationGroup> evaluatedGroups) {
+  ModelStepDataHelper(
+          int generation,
+          ModelPerStepData reporter,
+          List<EvaluationGroup> evaluatedGroups) {
     this.generation = generation;
     this.reporter = reporter;
     this.evaluatedGroups = evaluatedGroups;
@@ -487,12 +485,16 @@ private static class ModelStepDataHelper implements Runnable {
   }
 }
 
-private static class PopulationDataOutputHelper implements Runnable {
+private static class PopulationDataOutputHelper
+        implements Runnable {
   int            generation;
   PopulationData pdo;
   Population     population;
 
-  public PopulationDataOutputHelper(int generation, PopulationData pdo, Population population) {
+  public PopulationDataOutputHelper(
+          int generation,
+          PopulationData pdo,
+          Population population) {
     this.generation = generation;
     this.pdo = pdo;
     this.population = population;
@@ -502,6 +504,36 @@ private static class PopulationDataOutputHelper implements Runnable {
   public void run() {
     pdo.writePopulationData(generation, population);
   }
+}
+
+class PopulationMap
+        extends TreeMap<Integer, Population> {
+  private static final long serialVersionUID = 4508501876898154219L;
+  int individualIndex = 0;
+
+  int totalIndividuals() {
+    return individualIndex;
+  }
+
+  void addPopulations(Collection<Population> pops) {
+    for (Population pop : pops) {
+      addPopulation(pop);
+    }
+  }
+
+  void addPopulation(Population pop) {
+    put(individualIndex, pop);
+    individualIndex += pop.size();
+  }
+
+  Individual getIndividual(Integer position) {
+    Integer popStartsAt = lowerKey(position + 1);
+    Population pop = get(popStartsAt);
+    Integer popIndex = position - popStartsAt;
+    Individual toReturn = pop.individuals.get(popIndex);
+    return toReturn;
+  }
+
 }
 
 

@@ -11,6 +11,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class DefaultAgentModelFactory implements AgentModelFactory {
+public static final long serialVersionUID = 1L;
 
 String              className;
 Map<String, String> parameterStrings;

@@ -3,6 +3,7 @@ package agency.eval;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -28,6 +29,7 @@ import agency.XMLConfigurable;
  * @author kkoning
  */
 public class ShuffledEvaluationGroupFactory implements XMLConfigurable, EvaluationGroupFactory {
+public static final long serialVersionUID = 1L;
 
 Map<String, Integer> numAgentsFrom;
 Integer              numGroups;
@@ -98,11 +100,12 @@ public Stream<EvaluationGroup> createEvaluationGroups(Environment env) {
   ShuffledEvaluationGroupHelper segh = new ShuffledEvaluationGroupHelper(env);
 
   for (Map.Entry<String, Integer> entry : numAgentsFrom.entrySet()) {
-    PopulationGroup pg = env.getPopulationGroup(entry.getKey());
-    if (pg == null)
+    Optional<PopulationGroup> pg = env.getPopulationGroup(entry.getKey());
+    if (!pg.isPresent())
       throw new UnsupportedOperationException("ShuffledEvaluationGroupFactory cannot find PopulationGroup with id=" + entry.getKey());
 
-    Iterator<Agent<? extends Individual>> popIterator = pg.shuffledAgentStream().iterator();
+    Iterator<Agent<? extends Individual>> popIterator =
+            pg.get().shuffledAgentStream().iterator();
     segh.addPopulationGroup(popIterator, entry.getValue());
   }
 

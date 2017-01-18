@@ -16,7 +16,9 @@ import java.util.function.Function;
  * <p>
  * Created by liara on 11/21/16.
  */
-public class CSVDescriptives implements Runnable {
+public class CSVDescriptives
+        implements Runnable {
+public static final long serialVersionUID = 1L;
 
 File                sourceFile;
 BufferedReader      input;
@@ -27,6 +29,10 @@ DataOutput min, mean, stddev, max;
 
 int curGen = 0;
 
+public CSVDescriptives(String fileName) throws Exception {
+  sourceFile = new File(fileName);
+}
+
 public static void main(String[] args) throws Exception {
 
   /*
@@ -36,8 +42,14 @@ public static void main(String[] args) throws Exception {
    */
   Options options = new Options();
 
-  Option inputFileOption = Option.builder("f").longOpt("file").hasArg().required(true).type(String.class)
-          .desc("Configuration file to load, for starting a new simulation").build();
+  Option inputFileOption = Option.builder("f")
+                                 .longOpt("file")
+                                 .hasArg()
+                                 .required(true)
+                                 .type(String.class)
+                                 .desc("Configuration file to load, for " +
+                                       "starting a new simulation")
+                                 .build();
   options.addOption(inputFileOption);
 
   CommandLineParser parser = new DefaultParser();
@@ -55,10 +67,6 @@ public static void main(String[] args) throws Exception {
   self.run();
 
 
-}
-
-public CSVDescriptives(String fileName) throws Exception {
-  sourceFile = new File(fileName);
 }
 
 @Override
@@ -136,7 +144,10 @@ void nextGeneration() throws IOException {
   resetDescriptives();
 }
 
-void printSummaryRecord(DataOutput out, Function<SummaryStatistics, Double> sumFunc) throws IOException {
+void printSummaryRecord(
+        DataOutput out,
+        Function<SummaryStatistics, Double> sumFunc) throws
+                                                     IOException {
   List<Object> values = new ArrayList<>();
   values.add(curGen);
   for (int i = 1; i < stats.length; i++) {
@@ -148,6 +159,34 @@ void printSummaryRecord(DataOutput out, Function<SummaryStatistics, Double> sumF
   out.writeLine(values);
 }
 
+DataOutput createSumPrinter(File source, String sumLabel) throws IOException {
+
+  String sourceFilename = source.getName();
+  String destFilename =
+          sourceFilename.replaceFirst("(\\.csv)$", "_" + sumLabel + ".csv");
+  DataOutput toReturn =
+          new DataOutput(source.getParentFile().getCanonicalPath() +
+                         File.separator +
+                         destFilename);
+
+  List<Object> headers = new ArrayList<>();
+
+  for (String s : sourceColNames) {
+    headers.add(s);
+  }
+  headers.add("N");
+
+  toReturn.writeLine(headers);
+
+  return toReturn;
+}
+
+private void resetDescriptives() {
+  for (int i = 0; i < sourceColNames.length; i++) {
+    stats[i] = new SummaryStatistics();
+  }
+
+}
 
 static Double min(SummaryStatistics stats) {
   return stats.getMin();
@@ -163,32 +202,6 @@ static Double stddev(SummaryStatistics stats) {
 
 static Double max(SummaryStatistics stats) {
   return stats.getMax();
-}
-
-
-DataOutput createSumPrinter(File source, String sumLabel) throws IOException {
-
-  String sourceFilename = source.getName();
-  String destFilename = sourceFilename.replaceFirst("(\\.csv)$", "_" + sumLabel + ".csv");
-  DataOutput toReturn = new DataOutput(source.getParentFile().getCanonicalPath() + File.separator + destFilename);
-
-  List<Object> headers = new ArrayList<>();
-
-  for (String s : sourceColNames)
-    headers.add(s);
-  headers.add("N");
-
-  toReturn.writeLine(headers);
-
-  return toReturn;
-}
-
-
-private void resetDescriptives() {
-  for (int i = 0; i < sourceColNames.length; i++) {
-    stats[i] = new SummaryStatistics();
-  }
-
 }
 
 

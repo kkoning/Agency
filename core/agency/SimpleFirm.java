@@ -1,6 +1,8 @@
 package agency;
 
-public abstract class SimpleFirm<T extends Individual> implements Agent<T> {
+public abstract class SimpleFirm<T extends Individual>
+        implements Agent<T> {
+
 public    Account account;
 protected T       manager;
 AgentModel model;

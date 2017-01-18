@@ -9,8 +9,9 @@ import agency.Fitness;
 import agency.Individual;
 import agency.data.AgencyData;
 
-public class EvaluationGroup implements Serializable, Runnable {
-private static final long serialVersionUID = 1922150637452370643L;
+public class EvaluationGroup
+        implements Serializable, Runnable {
+public static final long serialVersionUID = 1L;
 
 UUID        id     = UUID.randomUUID();
 List<Agent> agents = new ArrayList<>();
@@ -20,7 +21,8 @@ AgentModel model;
 // Model data outputs
 Object summaryData;
 Map<Integer, Object> perStepData = new TreeMap<>();
-boolean                  finished    = false;
+boolean              finished    = false;
+Map<Individual, Fitness>  results = new IdentityHashMap<>();
 
 int generation;
 
@@ -32,12 +34,12 @@ public Map<Integer, Object> getPerStepData() {
   return perStepData;
 }
 
-public Map<Individual, Fitness> getResults() {
-  Map<Individual, Fitness> results = new IdentityHashMap<>();
+public Map<Individual, Fitness> getResults() { return results; }
+
+public void collectResults() {
   for (Agent agent : agents) {
     results.put(agent.getManager(), model.getFitness(agent));
   }
-  return results;
 }
 
 public void addAgent(Agent<? extends Individual> agent) {
@@ -75,6 +77,13 @@ public void run() {
 
   // Mark as finished to prevent accidental re-execution of model.
   finished = true;
+
+  // collect the fitness results
+  collectResults();
+
+  // Allow agent model to be garbage collected.
+  model = null;
+
 }
 
 @Override

@@ -16,6 +16,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class DebugEvaluator implements Evaluator {
+public static final long serialVersionUID = 1L;
 
 @Override
 public Stream<EvaluationGroup> evaluate(Stream<EvaluationGroup> evaluationGroups) {

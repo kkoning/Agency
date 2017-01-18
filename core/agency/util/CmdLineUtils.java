@@ -119,6 +119,29 @@ throws NumberFormatException {
   return Double.parseDouble(arg(cmd, o));
 }
 
+public static Optional<double[]> argDoubleList(CommandLine cmd, Option o) {
+  double[] toReturn = null;
+  try {
+    toReturn = argDoubleListThrow(cmd,o);
+  } catch (NumberFormatException nfe) {
+    // Do nothing; return an empty optional
+  }
+  return Optional.of(toReturn);
+}
+
+public static double[] argDoubleListThrow(CommandLine cmd, Option o)
+throws NumberFormatException {
+  String[] opValueStrings = cmd.getOptionValues(o.getOpt());
+  if (opValueStrings == null)
+    return null;
+  double[] toReturn = new double[opValueStrings.length];
+  for (int i = 0; i < toReturn.length; i++) {
+    toReturn[i] = Double.parseDouble(opValueStrings[i]);
+  }
+  return toReturn;
+}
+
+
 public static Optional<File> argExistingFile(CommandLine cmd, Option o) {
   Optional<File> toReturn = argFile(cmd, o);
   if (toReturn.isPresent()) {

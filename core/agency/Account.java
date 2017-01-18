@@ -1,7 +1,10 @@
 package agency;
 
 public class Account {
-double  balance;
+
+public static final long serialVersionUID = 1L;
+
+double balance;
 boolean balanceRestricted;
 
 /**
@@ -32,7 +35,10 @@ public Account(double startingBalance) {
  * @param amount
  *         The amount of the transaction
  */
-public static void payment(Account source, Account destination, double amount) throws PaymentException {
+public static void payment(
+        Account source,
+        Account destination,
+        double amount) throws PaymentException {
   source.pay(amount);
   destination.receive(amount);
 }
@@ -47,7 +53,8 @@ public void receive(double amount) {
  * @param amount
  *         The amount this account is decreased
  * @throws PaymentException
- *         if balanceRestricted is true and the payment would cause the account to go negative.
+ *         if balanceRestricted is true and the payment would cause the account
+ *         to go negative.
  */
 public void pay(double amount) throws PaymentException {
   if (balanceRestricted) {
@@ -76,7 +83,12 @@ public double getBalance() {
 
 @Override
 public String toString() {
-  return super.toString() + "[balance=" + balance + ", balanceRestricted=" + balanceRestricted + "]";
+  return super.toString() +
+         "[balance=" +
+         balance +
+         ", balanceRestricted=" +
+         balanceRestricted +
+         "]";
 }
 
 /**
@@ -86,7 +98,8 @@ public String toString() {
  *
  * @author kkoning
  */
-public static class PaymentException extends RuntimeException {
+public static class PaymentException
+        extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
   double balance;

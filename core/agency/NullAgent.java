@@ -1,6 +1,8 @@
 package agency;
 
 public class NullAgent implements Agent<Individual> {
+public static final long serialVersionUID = 1L;
+
 Individual ind;
 AgentModel model;
 

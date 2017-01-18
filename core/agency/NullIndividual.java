@@ -7,6 +7,8 @@ package agency;
  *
  * @author liara
  */
-public class NullIndividual extends AbstractIndividual {
+public class NullIndividual
+        extends AbstractIndividual {
+public static final long serialVersionUID = 1L;
 
 }

@@ -125,7 +125,7 @@ public FitnessLandscapeGenerator(
 
   baseGeneration = env.getGeneration();
 
-  PopulationGroup pg = env.getPopulationGroup(populationGroupID);
+  PopulationGroup pg = env.getPopulationGroup(populationGroupID).get();
   pop = pg.getPopulation(populationID).get();
   writer = pop.getPopulationDataOutputs().get(0);
   startingPopulationSize = pop.size();

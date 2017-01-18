@@ -1,6 +1,7 @@
 package agency;
 
 public class SimpleFitness implements Fitness {
+public static final long serialVersionUID = 1L;
 
 int    numSamples;
 double totalFitness;
