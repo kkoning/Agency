@@ -40,6 +40,16 @@ public class SummaryData implements AgencyData {
 }
 
 @Override
+public void init() {
+  // Unnecessary
+}
+
+@Override
+public void finish() {
+ // Unnecessary
+}
+
+@Override
 public Fitness getFitness(Agent<? extends Individual> agent) {
 
   // The agent is assumed to have a VectorInvididual<Integer>

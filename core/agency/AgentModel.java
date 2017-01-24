@@ -28,6 +28,15 @@ public void addAgent(Agent<? extends Individual> agent);
  */
 public Fitness getFitness(Agent<? extends Individual> agent);
 
+/**
+ * This function is called after all agents have been added to the model,
+ * but before an evaluator starts stepping it. As the name implies, this gives
+ * agent models an opportunity to perform any initialization steps needed
+ * before step() is called.
+ */
+public void init();
+
+
 // Evaluators need to do the stepping, since they might pull data
 // at each step.
 
@@ -38,6 +47,15 @@ public Fitness getFitness(Agent<? extends Individual> agent);
  * @return true if this model must be stepped again to complete analysis, false otherwise.
  */
 public boolean step();
+
+/**
+ * This function is called after all steps have been completed, but before
+ * fitness evaluation takes place.  This allows agent models to clean up
+ * after themselves (e.g., if any resources were obtained during
+ * initialization that must now be released) and make any adjustments to
+ * agent fitness before it is collected for use by the evolutionary algorithm.
+ */
+public void finish();
 
 /**
  * @return The maximum number of times that an evaluator should step this model.

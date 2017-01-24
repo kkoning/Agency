@@ -58,6 +58,8 @@ public void run() {
     agent.setModel(model);
   }
 
+  model.init();
+
   // Actually run the agent model
   int maxSteps = model.getMaxSteps();
   for (int step = 0; step < maxSteps; step++) {
@@ -71,6 +73,8 @@ public void run() {
     if (doneEarly)
       break;
   }
+
+  model.finish();
 
   // Get summary data
   summaryData = model.getSummaryData();
