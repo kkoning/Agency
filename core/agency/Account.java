@@ -81,6 +81,19 @@ public double getBalance() {
   return balance;
 }
 
+/**
+ * Forcibly sets the account balance to this amount.  Generally, this
+ * function should not be used except in cases where some hard-coded fitness
+ * adjustment is necessary, e.g., bankruptcy.  It is marked as deprecated
+ * for this reason; to help make sure it is not used unless necessary.
+ *
+ * @param balance
+ */
+@Deprecated
+public void forceBalance(double balance) {
+  this.balance = balance;
+}
+
 @Override
 public String toString() {
   return super.toString() +
