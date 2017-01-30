@@ -419,7 +419,7 @@ void step() {
   env.evaluationGroupFactory.createEvaluationGroups(env)
                             .forEach(eg -> unevaluated.add(eg));
 
-  List<EvaluationGroup> evaluatedGroups = env.evaluator
+  List<EvaluationGroup> evaluatedGroups = evaluator
           .evaluate(unevaluated.stream()).collect(Collectors.toList());
 
   Map<Individual, Fitness> aggFitnesses =
