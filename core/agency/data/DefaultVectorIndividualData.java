@@ -56,12 +56,12 @@ public void writePopulationData(int generation, Population pop) {
 
 
   // Do a check only on the first individual
-  Individual testIndividual = pop.allIndividuals().findFirst().get();
+  Individual testIndividual = pop.individuals.stream().findFirst().get();
   if (!(testIndividual instanceof VectorIndividual))
     throw new RuntimeException("only VectorIndividuals supported");
 
   // Main loop
-  pop.allIndividuals().forEach(i -> {
+  pop.individuals.stream().forEach(i -> {
     VectorIndividual vi = (VectorIndividual) i;
 
     Data d = new Data();

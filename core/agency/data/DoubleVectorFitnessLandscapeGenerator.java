@@ -435,7 +435,7 @@ void step() {
   aggFitnesses.entrySet().parallelStream().forEach(
           entry -> entry.getKey().setFitness(entry.getValue()));
 
-  sourcePopulation.allIndividuals().forEach(i -> {
+  sourcePopulation.individuals.stream().forEach(i -> {
     writer.fitnessLandscapeSample(baseGeneration,
                                   0, 0, i);
   });

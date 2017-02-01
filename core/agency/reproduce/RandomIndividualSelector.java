@@ -1,6 +1,8 @@
 package agency.reproduce;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.SerializationUtils;
@@ -15,19 +17,16 @@ public class RandomIndividualSelector implements BreedingPipeline, XMLConfigurab
 
 Population pop;
 
-transient Stream<Individual>   popStream;
-transient Iterator<Individual> i;
-
 @Override
 public Individual generate() {
-  return SerializationUtils.clone(i.next());
+  List<Individual> inds = pop.individuals;
+  int index = ThreadLocalRandom.current().nextInt(inds.size());
+  return SerializationUtils.clone(inds.get(index));
 }
 
 @Override
 public void setSourcePopulation(Population pop) {
   this.pop = pop;
-  popStream = pop.randomIndividuals();
-  i = popStream.iterator();
 }
 
 @Override

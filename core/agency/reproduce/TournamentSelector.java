@@ -80,7 +80,7 @@ public Individual generate() {
 
 @Override
 public void setSourcePopulation(Population pop) {
-  individuals = pop.allIndividuals().map((i) -> SerializationUtils.clone(i)).collect(Collectors.toList());
+  individuals = pop.individuals.stream().map((i) -> SerializationUtils.clone(i)).collect(Collectors.toList());
 }
 
 public int getTouramentSize() {

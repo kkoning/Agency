@@ -24,7 +24,7 @@ public void calculate(Environment env) {
 
       // Calculate statistics on (assumed) SimpleFitnesses
       DescriptiveStatistics stats = new DescriptiveStatistics();
-      p.allIndividuals().forEach(i -> {
+      p.individuals.stream().forEach(i -> {
         Optional<Fitness> fitness = Optional.of(i.getFitness());
         fitness.ifPresent(f -> {
           try {

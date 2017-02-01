@@ -1,21 +1,17 @@
 package agency.eval;
 
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import agency.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import agency.Agent;
-import agency.Environment;
-import agency.Individual;
-import agency.PopulationGroup;
-import agency.XMLConfigurable;
 
 /**
  * Creates {@link EvaluationGroup}s by
@@ -28,7 +24,8 @@ import agency.XMLConfigurable;
  *
  * @author kkoning
  */
-public class ShuffledEvaluationGroupFactory implements XMLConfigurable, EvaluationGroupFactory {
+public class ShuffledEvaluationGroupFactory
+        implements XMLConfigurable, EvaluationGroupFactory {
 public static final long serialVersionUID = 1L;
 
 Map<String, Integer> numAgentsFrom;
@@ -44,7 +41,9 @@ public void readXMLConfig(Element e) {
   try {
     numGroups = Integer.parseInt(e.getAttribute("numGroups"));
   } catch (Exception ex) {
-    throw new UnsupportedOperationException("ShuffledEvaluationGroupFactory must specify a numGroups=\"<Integer>\"", ex);
+    throw new UnsupportedOperationException(
+            "ShuffledEvaluationGroupFactory must specify a numGroups=\"<Integer>\"",
+            ex);
   }
 
   NodeList nl = e.getChildNodes();
@@ -55,19 +54,24 @@ public void readXMLConfig(Element e) {
 
       String elementName = child.getTagName();
       if (elementName == null)
-        throw new UnsupportedOperationException("Null element name for tag in a ShuffledEvaluationGroupFactory");
+        throw new UnsupportedOperationException(
+                "Null element name for tag in a ShuffledEvaluationGroupFactory");
       if (!elementName.equalsIgnoreCase("AgentSource"))
-        throw new UnsupportedOperationException("ShuffledEvaluationGroup must have only AgentSource child elements");
+        throw new UnsupportedOperationException(
+                "ShuffledEvaluationGroup must have only AgentSource child elements");
 
       String popGroupName = child.getAttribute("populationGroup");
       if (popGroupName == null)
-        throw new UnsupportedOperationException("AgentSource must specify a populationGroup=\"<id>\"");
+        throw new UnsupportedOperationException(
+                "AgentSource must specify a populationGroup=\"<id>\"");
 
       try {
         Integer numAgents = Integer.parseInt(child.getAttribute("numAgents"));
         numAgentsFrom.put(popGroupName, numAgents);
       } catch (Exception ex) {
-        throw new UnsupportedOperationException("AgentSource must specify a numAgents=\"<Integer>\"", ex);
+        throw new UnsupportedOperationException(
+                "AgentSource must specify a numAgents=\"<Integer>\"",
+                ex);
       }
 
     }
@@ -91,60 +95,115 @@ public void writeXMLConfig(Element e) {
 
 @Override
 public void resumeFromCheckpoint() {
-
+  // Nothing is required.
 }
 
 @Override
 public Stream<EvaluationGroup> createEvaluationGroups(Environment env) {
-
-  ShuffledEvaluationGroupHelper segh = new ShuffledEvaluationGroupHelper(env);
-
-  for (Map.Entry<String, Integer> entry : numAgentsFrom.entrySet()) {
-    Optional<PopulationGroup> pg = env.getPopulationGroup(entry.getKey());
-    if (!pg.isPresent())
-      throw new UnsupportedOperationException("ShuffledEvaluationGroupFactory cannot find PopulationGroup with id=" + entry.getKey());
-
-    Iterator<Agent<? extends Individual>> popIterator =
-            pg.get().shuffledAgentStream().iterator();
-    segh.addPopulationGroup(popIterator, entry.getValue());
-  }
-
-  Stream<EvaluationGroup> toReturn;
-  toReturn = Stream.generate(segh);
-  return toReturn.limit(numGroups);
-
-
+  ShuffledEvaluationGroupGenerator segg =
+          new ShuffledEvaluationGroupGenerator(numAgentsFrom,env);
+  return Stream.generate(segg).limit(numGroups);
 }
 
-static class ShuffledEvaluationGroupHelper implements Supplier<EvaluationGroup> {
+public static class ShuffledEvaluationGroupGenerator
+        implements
+        Supplier<EvaluationGroup> {
 
-  Map<Iterator<Agent<? extends Individual>>, Integer> na;
-  Environment                                         env;
+  SourceList[] sourceLists;
+  Environment  env;
 
-  ShuffledEvaluationGroupHelper(Environment env) {
-    na = new IdentityHashMap<>();
+  public ShuffledEvaluationGroupGenerator(
+          Map<String, Integer> sourceNameMap,
+          Environment env) {
+
+    sourceLists = new SourceList[sourceNameMap.size()];
     this.env = env;
+
+    int i = 0;
+    for (String popGroupID : sourceNameMap.keySet()) {
+      Optional<PopulationGroup> popGroupOp = env.getPopulationGroup(popGroupID);
+      if (!popGroupOp.isPresent())
+        throw new RuntimeException("Population group " + popGroupID + ", " +
+                                   "specified in " +
+                                   "ShuffledEvaluationGroupFactory, cannot be" +
+                                   " found");
+      PopulationGroup pg = popGroupOp.get();
+      List<IndPopPair> inds = new ArrayList<>();
+      for (Population pop : pg.getPopulations()) {
+        for (Individual ind : pop.individuals) {
+          IndPopPair ipp = new IndPopPair();
+          ipp.i = ind;
+          ipp.p = pop;
+          inds.add(ipp);
+        }
+      }
+      SourceList sl = new SourceList();
+      sl.inds = inds;
+      sl.qty = sourceNameMap.get(popGroupID);
+      sourceLists[i] = sl;
+      i++;
+    }
+
+    for (SourceList sl : sourceLists) {
+      Collections.shuffle(sl.inds, ThreadLocalRandom.current());
+    }
   }
 
-  void addPopulationGroup(Iterator<Agent<? extends Individual>> agentSource, Integer numAgents) {
-    na.put(agentSource, numAgents);
-  }
 
   @Override
-  synchronized public EvaluationGroup get() {
+  public EvaluationGroup get() {
     EvaluationGroup eg = new EvaluationGroup();
     eg.generation = env.getGeneration();
     eg.setModel(env.getAgentModelFactory().createAgentModel());
-    for (Map.Entry<Iterator<Agent<? extends Individual>>, Integer> entry : na.entrySet()) {
-      for (int i = 0; i < entry.getValue(); i++) {
-        Agent<? extends Individual> agent = entry.getKey().next();
+    for (SourceList sl : sourceLists) {
+      for (int i = 0; i < sl.qty; i++) {
+        Agent agent = sl.get();
         eg.addAgent(agent);
       }
-
     }
+
     return eg;
   }
 
 }
+
+private static class SourceList
+        implements Supplier<Agent> {
+
+  Lock lock = new ReentrantLock();
+  List<IndPopPair> inds;
+  Integer          qty;
+
+  int position = 0;
+
+  @Override
+  public Agent get() {
+    Agent toReturn;
+    try {
+      lock.lock();
+      checkAndShuffle();
+      IndPopPair ipp = inds.get(position);
+      toReturn = ipp.p.createAgent(ipp.i);
+      position++;
+    } finally {
+      lock.unlock();
+    }
+
+    return toReturn;
+  }
+
+  private void checkAndShuffle() {
+    if (position >= inds.size()) {
+      position = 0;
+      Collections.shuffle(inds,ThreadLocalRandom.current());
+    }
+  }
+}
+
+private static class IndPopPair {
+  Individual i;
+  Population p;
+}
+
 
 }

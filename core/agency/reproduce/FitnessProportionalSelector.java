@@ -56,7 +56,7 @@ public void setSourcePopulation(Population pop) {
   // Put the population into a tree map by cumulative fitness.
   // Order is not important, proportionality comes from size of range
   // that maps to an individual.
-  Iterator<Individual> i = pop.allIndividuals().iterator();
+  Iterator<Individual> i = pop.individuals.stream().iterator();
   boolean haveWarnedIfEmpty = false;
   while (i.hasNext()) {
     Individual ind = i.next();

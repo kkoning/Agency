@@ -280,6 +280,7 @@ public void evolve() {
    * Data output should now be complete.  It should be safe to modify the population state
    * for the next generation.
    */
+  int foo = 9; // breakpoint
 
 
   // TODO: Balance populations inside of populationGroups.

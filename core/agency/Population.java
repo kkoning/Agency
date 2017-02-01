@@ -3,7 +3,6 @@ package agency;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -15,15 +14,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import agency.reproduce.BreedingPipeline;
-import agency.util.RandomStream;
 
-public class Population implements Serializable, XMLConfigurable {
+public class Population
+        implements Serializable, XMLConfigurable {
 public static final long serialVersionUID = 1L;
 
 public List<Individual> individuals;
 
-String  id;
-Integer initialSize;
+String                        id;
+Integer                       initialSize;
 IndividualFactory<Individual> indFactory;
 AgentFactory                  agentFactory;
 BreedingPipeline              breedingPipeline;
@@ -32,26 +31,51 @@ List<PopulationData>          populationDataOutputs;
 Integer evolveCycle;
 int     evolveCycleStart, evolveCycleStop;
 
-public Population(IndividualFactory<? extends Individual> indFactory,
-                  AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
+/**
+ * Constructor for when called programatically.  The default constructor
+ * assumes initialization from readXMLConfig().
+ *
+ * @param indFactory
+ *         A source of individuals to initialize the population.
+ * @param agentFactory
+ *         A way to create an agent whose behavior is based on an individual.
+ * @param bp
+ *         Used to generate the next generation of individuals.
+ * @param initialSize
+ *         The number of individuals initially present in the population.  This
+ *         may change over time as this population is more or less fit as
+ *         compared with the other populations in this PopulationGroup.
+ */
+public Population(
+        IndividualFactory<? extends Individual> indFactory,
+        AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
   this();
   this.indFactory = (IndividualFactory<Individual>) indFactory;
   this.agentFactory = agentFactory;
   this.breedingPipeline = bp;
   this.initialSize = initialSize;
 
-
   initializePopulation(initialSize);
 }
 
+
+/**
+ * Default constructor.  Called when initialization is assumed from
+ * readXMLConfig().  If you are calling this function not while reading a
+ * configuration file, you likely want the other constructor.
+ */
 public Population() {
   this.id = UUID.randomUUID().toString();
   populationDataOutputs = new ArrayList<>();
 }
 
-void initializePopulation(int size) {
+/**
+ * Creates the initial set of individuals from this.indFactory
+ *
+ * @param size
+ */
+private void initializePopulation(int size) {
   individuals = new ArrayList<>();
-  // fitness = new IdentityHashMap<>();
   IntStream.range(0, size).forEach(i -> {
     Individual ind = indFactory.create();
     individuals.add(ind);
@@ -105,9 +129,9 @@ public void readXMLConfig(Element e) {
         PopulationData pd = (PopulationData) xc;
         populationDataOutputs.add(pd);
       } else {
-        throw new UnsupportedOperationException("Unrecognized element in Population");
+        throw new UnsupportedOperationException(
+                "Unrecognized element in Population");
       }
-
     }
   }
 
@@ -142,7 +166,6 @@ public void writeXMLConfig(Element e) {
     Element pde = Config.createUnnamedElement(d, popData);
     e.appendChild(pde);
   }
-
 }
 
 @Override
@@ -153,14 +176,42 @@ public void resumeFromCheckpoint() {
   populationDataOutputs.forEach(XMLConfigurable::resumeFromCheckpoint);
 }
 
+/**
+ * This function is used for creating fitness landscapes of existing
+ * populations; the fitness landscape generator needs to be able to write
+ * fitness samples, and won't know the details of how to do that itself.
+ *
+ * @return A list of population data outputs
+ */
 public List<PopulationData> getPopulationDataOutputs() {
   return populationDataOutputs;
 }
 
+/**
+ * Generate a new set of individuals from the existing individuals, based on
+ * their fitness.
+ *
+ * @param env
+ *         The current environment, passed for reference to occasionally
+ *         important variables such as the current generation #.
+ */
 public void reproduce(Environment env) {
   reproduce(env, this.size());
 }
 
+/**
+ * Generate a new set of individuals from the existing individuals, based on
+ * their fitness.
+ *
+ * @param env
+ *         The current environment, passed for reference to occasionally
+ *         important variables such as the current generation #.
+ * @param populationSize
+ *         The number of individuals that will be present in the next
+ *         generation.  The target size may change depending on the fitness of
+ *         this population as compared with other populations in a
+ *         PopulationGroup.
+ */
 public void reproduce(Environment env, int populationSize) {
   if (evolveCycle != null) {
     int genInCycle = env.generation % evolveCycle;
@@ -172,76 +223,71 @@ public void reproduce(Environment env, int populationSize) {
   definatelyReproduce(env, populationSize);
 }
 
+/**
+ * Generate a new set of individuals from the existing individuals, based on
+ * their fitness.  Unlike the reproduce()
+ *
+ * @param env
+ *         The current environment, passed for reference to occasionally
+ *         important variables such as the current generation #.
+ * @param populationSize
+ *         The number of individuals that will be present in the next
+ *         generation.  The target size may change depending on the fitness of
+ *         this population as compared with other populations in a
+ *         PopulationGroup.
+ */
 public void definatelyReproduce(Environment env, int populationSize) {
 
   breedingPipeline.setSourcePopulation(this);
   List<Individual> newPopulation = IntStream.range(0, populationSize)
-          .mapToObj((i) -> {
-            Individual ind = breedingPipeline.generate();
-            return ind;
-          }).collect(Collectors.toList());
+                                            .mapToObj((i) -> {
+                                              Individual ind =
+                                                      breedingPipeline.generate();
+                                              return ind;
+                                            }).collect(Collectors.toList());
 
   individuals = newPopulation;
 
 }
 
+/**
+ * @return the number of individuals currently in this population.
+ */
 public int size() {
   return individuals.size();
 }
 
-public Stream<Individual> allIndividuals() {
-  return individuals.stream();
-}
-
-public Stream<Individual> randomIndividuals() {
-  RandomStream<Individual> rs = new RandomStream<>();
-  return rs.randomStream(individuals);
-
-}
-
-public Stream<Agent<? extends Individual>> shuffledAgents() {
-  return shuffledIndividuals().map(i -> createAgent(i));
-}
-
-protected Agent<? extends Individual> createAgent(Individual ind) {
+/**
+ * Creates a new agent based on the specified individual.  Uses the
+ * AgentFactory associated with this population (typically as specified in
+ * the configuration file).
+ *
+ * @param ind
+ * @return
+ */
+public Agent<? extends Individual> createAgent(Individual ind) {
   return agentFactory.createAgent(ind);
-}
-
-Stream<Individual> shuffledIndividuals() {
-  RandomStream<Individual> rs = new RandomStream<>();
-  return rs.shuffledStream(individuals);
 }
 
 @Override
 public String toString() {
-  StringBuffer sb = new StringBuffer();
-  sb.append("Population#" + this.hashCode() + "{\n indFactory=" + indFactory
-          + ",\n agentFactory=" + agentFactory + ",\n individuals=[");
-  if (individuals != null)
-    for (Individual ind : individuals) {
-      String fitnessDescription;
-      Fitness fit = ind.getFitness();
-      if (fit != null)
-        fitnessDescription = fit.toString();
-      else
-        fitnessDescription = "No Fitness";
-      sb.append("\n" + ind + "->" + fitnessDescription + ",");
-    }
-  sb.deleteCharAt(sb.length() - 1);
-  sb.append("]\n}");
-  return sb.toString();
+  return "Population{" +
+         "id='" + id + '\'' +
+         '}';
+}
+
+/**
+ * Closes the PopulationDataOutputs associated with this Population.
+ */
+public void close() {
+  for (PopulationData pd : populationDataOutputs) {
+    pd.close();
+  }
 }
 
 public String getId() {
   return id;
 }
 
-public AgentFactory getAgentFactory() {
-  return agentFactory;
-}
 
-public void close() {
-  for (PopulationData pd : populationDataOutputs)
-    pd.close();
-}
 }

@@ -285,7 +285,7 @@ void step() {
   Now, just ignore all outputs other than the one we're interested in.
    */
   if ((generationOffset % sampleEvery) == 0) {
-    pop.allIndividuals().forEach(i -> {
+    pop.individuals.stream().forEach(i -> {
       writer.fitnessLandscapeSample(baseGeneration,
                                     generationOffset, timesThrough, i);
     });
@@ -297,7 +297,7 @@ void step() {
   /*
   Set fitnesses equal to zero to disable selection.
    */
-  pop.allIndividuals().parallel().forEach(i -> i.setFitness(zeroFitness));
+  pop.individuals.stream().parallel().forEach(i -> i.setFitness(zeroFitness));
 
   /*
   Adjust acutual population size

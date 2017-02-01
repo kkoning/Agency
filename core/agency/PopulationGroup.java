@@ -3,6 +3,8 @@ package agency;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -11,7 +13,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class PopulationGroup implements Serializable, XMLConfigurable {
+public class PopulationGroup
+        implements Serializable, XMLConfigurable {
 public static final long serialVersionUID = 1L;
 
 
@@ -35,7 +38,8 @@ public void readXMLConfig(Element e) {
   try {
     totalPopulationSize = Integer.parseInt(e.getAttribute("totalSize"));
   } catch (NumberFormatException nfe) {
-    throw new UnsupportedOperationException("PopulationGroup must have a totalSize=<Integer>");
+    throw new UnsupportedOperationException(
+            "PopulationGroup must have a totalSize=<Integer>");
   }
 
 
@@ -49,7 +53,8 @@ public void readXMLConfig(Element e) {
       if (xc instanceof Population) {
         populations.add((Population) xc);
       } else {
-        throw new UnsupportedOperationException("Unrecognized element in Population");
+        throw new UnsupportedOperationException(
+                "Unrecognized element in Population");
       }
 
     }
@@ -74,19 +79,23 @@ public void resumeFromCheckpoint() {
   populations.forEach(Population::resumeFromCheckpoint);
 }
 
-public Stream<Agent<? extends Individual>> shuffledAgentStream() {
-  return Stream.generate(new ShuffledAgentStreamHelper());
-}
-
 /**
  * Manually add a population to this population group.
  *
  * @param population
  */
-void addPopulation(Population population) {
+public void addPopulation(Population population) {
   this.populations.add(population);
 }
 
+/**
+ * Reproduces each of the Populations contained in this PopulationGroup.
+ * Currently does not balance population sizes based on fitness.
+ *
+ * TODO: Code for balancing population sizes based on fitness.
+ *
+ * @param env The environment (
+ */
 public void reproduce(Environment env) {
   for (Population pop : populations) {
     pop.reproduce(env);
@@ -103,7 +112,7 @@ public Optional<Population> getPopulation(String popID) {
     if (p.getId().equals(popID)) {
       if (toReturn != null)
         throw new RuntimeException("Population Group " + getId() +
-                " has two populations with id = " + popID);
+                                   " has two populations with id = " + popID);
       else {
         toReturn = p;
         break;
@@ -119,46 +128,8 @@ public String getId() {
 }
 
 public void close() {
-  for (Population pop : populations)
+  for (Population pop : populations) {
     pop.close();
-}
-
-public static class IndividualPopulationPair {
-  Individual ind;
-  Population p;
-
-  public Agent<? extends Individual> newAgent() {
-    return p.createAgent(ind);
-  }
-}
-
-class ShuffledAgentStreamHelper implements Supplier<Agent<? extends Individual>> {
-  ArrayList<IndividualPopulationPair> inds = new ArrayList<>();
-  Iterator<IndividualPopulationPair> it;
-
-  ShuffledAgentStreamHelper() {
-    for (Population pop : populations) {
-      for (Individual ind : pop.individuals) {
-        IndividualPopulationPair ipp = new IndividualPopulationPair();
-        ipp.ind = ind;
-        ipp.p = pop;
-        inds.add(ipp);
-      }
-    }
-    Collections.shuffle(inds, ThreadLocalRandom.current());
-    it = inds.iterator();
-  }
-
-  @Override
-  public Agent<? extends Individual> get() {
-    if (it.hasNext())
-      return it.next().newAgent();
-    else {
-      Collections.shuffle(inds, ThreadLocalRandom.current());
-      it = inds.iterator();
-      return it.next().newAgent();
-    }
-
   }
 }
 
