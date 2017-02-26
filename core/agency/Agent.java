@@ -1,5 +1,7 @@
 package agency;
 
+import java.util.Optional;
+
 /**
  * An agent in a simulation is conceptually separate from an individual in an
  * evolving population. The agent can have state which is specific to an
@@ -17,10 +19,16 @@ package agency;
  * @param <T>
  * @author kkoning
  */
-public interface Agent<T extends Individual> {
-public T getManager();
+public interface Agent<N extends Individual, M extends AgentModel> {
 
-public void setManager(T ind);
+void init();
 
-public void setModel(AgentModel model);
+void step(M model, int step, Optional<Double> substep);
+
+N getManager();
+
+void setManager(N ind);
+
+void setModel(M model);
+
 }

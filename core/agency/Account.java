@@ -21,6 +21,7 @@ public Account() {
  * @param startingBalance
  */
 public Account(double startingBalance) {
+  this();
   balance = startingBalance;
 }
 
@@ -69,6 +70,18 @@ public void pay(double amount) throws PaymentException {
   }
 }
 
+public void payTo(Account other, double amount) throws PaymentException {
+  if (other == this)
+    return; // No point in paying ourselves...
+  pay(amount);
+  other.receive(amount);
+}
+
+public void receiveFrom(Account other, double amount) throws PaymentException {
+  other.pay(amount);
+  receive(amount);
+}
+
 public boolean isBalanceRestricted() {
   return balanceRestricted;
 }
@@ -111,8 +124,7 @@ public String toString() {
  *
  * @author kkoning
  */
-public static class PaymentException
-        extends RuntimeException {
+public static class PaymentException extends Exception {
   private static final long serialVersionUID = 1L;
 
   double balance;

@@ -1,31 +1,30 @@
 package agency;
 
-public abstract class SimpleFirm<T extends Individual>
-        implements Agent<T> {
+public abstract class SimpleFirm<N extends Individual, M extends AgentModel>
+        implements Agent<N, M> {
 
-public    Account account;
-protected T       manager;
-AgentModel model;
+N manager;
+M model;
 
-protected SimpleFirm() {
-  account = new Account();
-}
+public boolean bankrupt = false;
+
+public Account account = new Account();
 
 @Override
-public T getManager() {
+public N getManager() {
   return manager;
 }
 
 @Override
-public void setManager(T manager) {
+public void setManager(N manager) {
   this.manager = manager;
 }
 
-public AgentModel getModel() {
+public M getModel() {
   return model;
 }
 
-public void setModel(AgentModel model) {
+public void setModel(M model) {
   this.model = model;
 }
 
@@ -35,6 +34,18 @@ public void setModel(AgentModel model) {
 public SimpleFitness getFitness() {
   SimpleFitness fit = new SimpleFitness(account.balance);
   return fit;
+}
+
+public Account getAccount() {
+  return account;
+}
+
+public boolean isBankrupt() {
+  return bankrupt;
+}
+
+public void goBankrupt() {
+  bankrupt = true;
 }
 
 }

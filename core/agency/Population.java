@@ -265,7 +265,7 @@ public int size() {
  * @param ind
  * @return
  */
-public Agent<? extends Individual> createAgent(Individual ind) {
+public Agent createAgent(Individual ind) {
   return agentFactory.createAgent(ind);
 }
 

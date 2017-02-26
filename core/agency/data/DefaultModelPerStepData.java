@@ -1,5 +1,8 @@
 package agency.data;
 
+import agency.eval.EvaluationGroup;
+
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,13 +18,14 @@ public DefaultModelPerStepData() {
 }
 
 @Override
-public void writePerStepData(int generation, UUID modelUUID, Map<Integer,
-        Object> allStepsData) {
+public void writePerStepData(int generation,
+                             UUID modelUUID,
+                             List<EvaluationGroup.PerStepData> allStepsData) {
   if (allStepsData != null) {
-    for (Map.Entry<Integer, Object> perStepData : allStepsData.entrySet()) {
-      Integer step = perStepData.getKey();
-      Object stepData = perStepData.getValue();
-      write(stepData, generation, modelUUID, step);
+    for (EvaluationGroup.PerStepData psd : allStepsData) {
+      if (psd != null) {
+        write(psd.data, generation, modelUUID, psd.step);
+      }
     }
   }
 }

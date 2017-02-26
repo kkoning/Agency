@@ -17,7 +17,7 @@ public interface AgentModel {
  * @param agent
  *         The agent to add
  */
-public void addAgent(Agent<? extends Individual> agent);
+public void addAgent(Agent agent);
 
 /**
  * In order for the evolutionary system to function, agent models must assign
@@ -26,7 +26,7 @@ public void addAgent(Agent<? extends Individual> agent);
  * @param agent
  * @return
  */
-public Fitness getFitness(Agent<? extends Individual> agent);
+public Fitness getFitness(Agent agent);
 
 /**
  * This function is called after all agents have been added to the model,

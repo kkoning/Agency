@@ -8,7 +8,7 @@ public class NullAgentFactory
 Individual ind;
 
 @Override
-public Agent<? extends Individual> createAgent(Individual ind) {
+public Agent createAgent(Individual ind) {
   NullAgent na = new NullAgent();
   na.setManager(ind);
   return na;

@@ -50,7 +50,7 @@ public void finish() {
 }
 
 @Override
-public Fitness getFitness(Agent<? extends Individual> agent) {
+public Fitness getFitness(Agent agent) {
 
   // The agent is assumed to have a VectorInvididual<Integer>
   VectorIndividual<Double> ind = (VectorIndividual<Double>) agent
@@ -68,7 +68,7 @@ public Fitness getFitness(Agent<? extends Individual> agent) {
 }
 
 @Override
-public void addAgent(Agent<? extends Individual> agent) {
+public void addAgent(Agent agent) {
   // Don't need to add them to a simulation, they can be evaluated directly
   // based on the content of their genome.
 }

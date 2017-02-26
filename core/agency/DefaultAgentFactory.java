@@ -27,7 +27,7 @@ public DefaultAgentFactory() {
 }
 
 @Override
-public Agent<? extends Individual> createAgent(Individual ind) {
+public Agent createAgent(Individual ind) {
   Agent agent;
   try {
     agent = agentClass.newInstance();

@@ -20,9 +20,9 @@ AgentModel model;
 
 // Model data outputs
 Object summaryData;
-Map<Integer, Object> perStepData = new TreeMap<>();
-boolean              finished    = false;
-Map<Individual, Fitness>  results = new IdentityHashMap<>();
+List<PerStepData>        perStepData = new ArrayList<>();
+boolean                  finished    = false;
+Map<Individual, Fitness> results     = new IdentityHashMap<>();
 
 int generation;
 
@@ -30,19 +30,15 @@ public Object getSummaryData() {
   return summaryData;
 }
 
-public Map<Integer, Object> getPerStepData() {
+public List<PerStepData> getPerStepData() {
   return perStepData;
 }
 
-public Map<Individual, Fitness> getResults() { return results; }
-
-public void collectResults() {
-  for (Agent agent : agents) {
-    results.put(agent.getManager(), model.getFitness(agent));
-  }
+public Map<Individual, Fitness> getResults() {
+  return results;
 }
 
-public void addAgent(Agent<? extends Individual> agent) {
+public void addAgent(Agent<? extends Individual, ? extends AgentModel> agent) {
   agents.add(agent);
 }
 
@@ -52,13 +48,19 @@ public void run() {
   if (finished)
     throw new RuntimeException("Cannot run an EvaluationGroup twice.");
 
+  // Initialize the model
+  model.init();
+
   // Associate the Agents with the model and vice versa
   for (Agent agent : agents) {
     model.addAgent(agent);
     agent.setModel(model);
   }
 
-  model.init();
+  // Initialize all the agents.
+  for (Agent agent : agents) {
+    agent.init();
+  }
 
   // Actually run the agent model
   int maxSteps = model.getMaxSteps();
@@ -66,8 +68,12 @@ public void run() {
 
     // Per-step data; if reported
     Object data = model.getStepData();
-    if (data != null)
-      perStepData.put(step, data);
+    if (data != null) {
+      PerStepData psd = new PerStepData();
+      psd.step = step;
+      psd.data = data;
+      perStepData.add(psd);
+    }
 
     boolean doneEarly = model.step();
     if (doneEarly)
@@ -88,6 +94,12 @@ public void run() {
   // Allow agent model to be garbage collected.
   model = null;
 
+}
+
+public void collectResults() {
+  for (Agent agent : agents) {
+    results.put(agent.getManager(), model.getFitness(agent));
+  }
 }
 
 @Override
@@ -120,5 +132,10 @@ public UUID getId() {
   return id;
 }
 
+
+public static class PerStepData {
+  public int    step;
+  public Object data;
+}
 
 }

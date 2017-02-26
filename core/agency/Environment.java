@@ -479,7 +479,7 @@ private static class ModelStepDataHelper
   @Override
   public void run() {
     for (EvaluationGroup eg : evaluatedGroups) {
-      Map<Integer, Object> perStepData = eg.getPerStepData();
+      List<EvaluationGroup.PerStepData> perStepData = eg.getPerStepData();
       UUID modelUUID = eg.getId();
       reporter.writePerStepData(generation, modelUUID, perStepData);
     }
