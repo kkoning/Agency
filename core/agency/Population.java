@@ -15,19 +15,85 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import agency.reproduce.BreedingPipeline;
 
+/**
+ One of the core features of Agency is that the number of individuals in any
+ given population varies along with the relative fitness of a population as
+ compared to the other popoulations in its populationGroup.
+ */
 public class Population
         implements Serializable, XMLConfigurable {
 public static final long serialVersionUID = 1L;
 
 public List<Individual> individuals;
 
+/**
+ A unique ID so that the population can be referred to elsewhere, e.g. to
+ uniquely identify this population in output statistics.  If not
+ specified in the &lt;Population&rt; element, a random UUID is used.
+ */
 String                        id;
+
+/**
+ During the first generation, there is no fitness history on which to
+ calculate evolved population sizes as compared with other Populations in the
+ same PopulationGroup.  That size is specified here.
+ */
 Integer                       initialSize;
+
+/**
+ While the number of individuals in a Population vary, it may be desirable to
+ maintain a minimum number of individuals so that the Population does not go
+ extinct.  The variable <i>baseSize</i> tells the inter-Population selection
+ system that this population should always have at least this number of
+ individuals.
+ */
+Integer                       baseSize;
+
+/**
+ This object is used to create new individuals, not based on any previous
+ individuals.  It is used to create the initial set of Individuals in the
+ Population at generation 0.
+ */
 IndividualFactory<Individual> indFactory;
+
+/**
+ Individuals cannot be used directly; there must be some mapping of the
+ genetic information to behavior within the agent-based model.  This is the
+ function of the Agent class.  The AgentFactory produces a new agent based on
+ the specified individual.
+
+ Something that's important to note is that, while the lifetime of an Agent
+ object is only for a single simulation, and therefore should never be
+ present in two agent models simultaneously, the Individual object _is_.  It
+ is therefore important to ensure all agent-model specific state be contained
+ in the Agent object, and none in the Individual object.
+ */
 AgentFactory                  agentFactory;
+
+/**
+ The BreedingPipeline is modeled after the excellent system in ECJ.  A series
+ of selectors, mutators, limiters, etc... is used to evolve the population
+ between generations.
+ */
 BreedingPipeline              breedingPipeline;
+
+/**
+ These objects are responsible for writing data about this population to
+ output files for analysis by other programs, i.e., a graphing or statistics
+ package.
+ */
 List<PopulationData>          populationDataOutputs;
 
+/**
+ This variable is used when the population should not go through evolution
+ every generation.  The evolveCycle specifies the number of generations in
+ the cycle, while evolveCycleStart and evolveCycleStop, as expected, specify
+ the generation _within_ that cycle that this Population evolves.
+
+ For example, one may have three populations evolving on a 30-generation
+ cycle.  The first population evolves in generations 0-9, the second
+ population in generations 10-19, and the third in generations 20-29.
+ */
 Integer evolveCycle;
 int     evolveCycleStart, evolveCycleStop;
 
