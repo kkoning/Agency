@@ -26,11 +26,6 @@ public int getGenomeLength() {
   return 0;
 }
 
-public T get(int pos) {
-  // TODO add optional bounds checking
-  return genome[pos];
-}
-
 public void set(int pos, Object object) {
   // TODO add optional bounds checking
   genome[pos] = (T) object;

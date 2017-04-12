@@ -88,8 +88,8 @@ public Individual generate() {
   int crossoverEndPos = r.nextInt(genomeSize);
   // do the actual crossover
   while (crossoverPos != crossoverEndPos) {
-    Object fromClone1 = clone1.get(crossoverPos);
-    Object fromClone2 = clone2.get(crossoverPos);
+    Object fromClone1 = clone1.getGenomeAt(crossoverPos);
+    Object fromClone2 = clone2.getGenomeAt(crossoverPos);
     clone1.set(crossoverPos, fromClone2);
     clone2.set(crossoverPos, fromClone1);
 

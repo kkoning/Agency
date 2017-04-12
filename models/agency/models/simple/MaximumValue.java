@@ -68,6 +68,11 @@ public Fitness getFitness(Agent agent) {
 }
 
 @Override
+public Object getAgentDetails(Agent agent) {
+  return null;
+}
+
+@Override
 public void addAgent(Agent agent) {
   // Don't need to add them to a simulation, they can be evaluated directly
   // based on the content of their genome.

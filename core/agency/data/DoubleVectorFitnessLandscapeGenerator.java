@@ -330,12 +330,15 @@ public static void main(String[] args) {
       double[] rangeList = doubListOp.get();
 
       // Make sure the length of the vectors match.
-      if (!(rangeList.length != dvig.populationMean.length)) {
+      if ((rangeList.length != dvig.populationMean.length)) {
         CmdLineUtils.printHelp(DoubleVectorFitnessLandscapeGenerator.class,
                                options,
                                "ERROR: The length of the vector of ranges " +
                                "specified on the command line must be equal " +
-                               "to the length of the species' genome.");
+                               "to the length of the species' genome.  " +
+                               "Specified list of length " + rangeList.length
+                               + ", population genome of length " +
+                               dvig.populationMean.length);
         return;
       }
 
@@ -478,7 +481,7 @@ private static final class DoubleVectorIndividualGenerator {
     for (Individual i : sourcePop.individuals) {
       VectorIndividual<Double> ind = (VectorIndividual<Double>) i;
       for (int j = 0; j < stats.length; j++) {
-        stats[j].addValue(((VectorIndividual<Double>) i).get(j));
+        stats[j].addValue(((VectorIndividual<Double>) i).getGenomeAt(j));
       }
     }
 
