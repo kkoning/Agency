@@ -15,11 +15,6 @@ public Double getAverageFitness() {
   return totalFitness / numSamples;
 }
 
-public void addFitnessSample(double fitness) {
-  this.totalFitness += fitness;
-  totalFitness++;
-}
-
 @Override
 public int compareTo(Fitness o) {
   if (o instanceof SimpleFitness) {
