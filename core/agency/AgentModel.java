@@ -17,7 +17,7 @@ public interface AgentModel {
  * @param agent
  *         The agent to add
  */
-public void addAgent(Agent agent);
+void addAgent(Agent agent);
 
 /**
  * In order for the evolutionary system to function, agent models must assign
@@ -26,7 +26,22 @@ public void addAgent(Agent agent);
  * @param agent
  * @return
  */
-public Fitness getFitness(Agent agent);
+Fitness getFitness(Agent agent);
+
+/**
+ * In many cases it will be useful to have more detail about an agent's
+ * performance than the composite fitness metric.  For understanding the
+ * simulation dynamics, it can be useful to observe some of the components of
+ * that fitness, or actions that lead to it.  This may also be useful in
+ * combination with the generation of fitness landscapes, in cases where the
+ * behavior is not specified directly by the genome itself.  (E.g., an
+ * offered price depends on information about the market environment, rather
+ * than being directly encoded into a genome).
+ *
+ * @param agent
+ * @return
+ */
+Object getAgentDetails(Agent agent);
 
 /**
  * This function is called after all agents have been added to the model,
@@ -34,19 +49,16 @@ public Fitness getFitness(Agent agent);
  * agent models an opportunity to perform any initialization steps needed
  * before step() is called.
  */
-public void init();
-
-
-// Evaluators need to do the stepping, since they might pull data
-// at each step.
+void init();
 
 /**
  * Steps the model.  This function is typically called by an evaluator, which may
  * also collect data between steps.
  *
- * @return true if this model must be stepped again to complete analysis, false otherwise.
+ * @return false if the simulation should be terminated before maxSteps, true
+ * otherwise.
  */
-public boolean step();
+boolean step();
 
 /**
  * This function is called after all steps have been completed, but before
@@ -55,12 +67,12 @@ public boolean step();
  * initialization that must now be released) and make any adjustments to
  * agent fitness before it is collected for use by the evolutionary algorithm.
  */
-public void finish();
+void finish();
 
 /**
  * @return The maximum number of times that an evaluator should step this model.
  */
-public int getMaxSteps();
+int getMaxSteps();
 
 // Interface for evaluators to pull data from agent models
 
@@ -72,7 +84,7 @@ public int getMaxSteps();
  *
  * @return An object that contains summary data for this agent model.
  */
-public Object getSummaryData();
+Object getSummaryData();
 
 /**
  * An object that contains per-step data for this agent model. This should be
@@ -81,8 +93,7 @@ public Object getSummaryData();
  *
  * @return An object that contains per-step data for this agent model.
  */
-public Object getStepData();
-
+Object getStepData();
 
 /**
  * This function is called before the start of an agent model, and indicates
@@ -93,6 +104,6 @@ public Object getStepData();
  *
  * @param out The PrintStream that the debugging log should be written to.
  */
-public void enableDebug(PrintStream out);
+void enableDebug(PrintStream out);
 
 }
