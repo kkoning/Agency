@@ -13,6 +13,7 @@ T[] genome;
 
 @SuppressWarnings("unchecked")
 public VectorIndividual(int genomeSize) {
+  // T is guaranteed to be an object, not a primitive
   genome = (T[]) new Object[genomeSize];
 }
 
@@ -26,16 +27,15 @@ public int getGenomeLength() {
   return 0;
 }
 
-public void set(int pos, Object object) {
-  // TODO add optional bounds checking
-  genome[pos] = (T) object;
+public void changeGene(int position, T value) {
+  genome[position] = value;
 }
 
 public T getGenomeAt(int position) {
   T toReturn = null;
   try {
-    Object[] g = getGenome();
-    toReturn = (T) g[position];
+    T[] g = getGenome();
+    toReturn = g[position];
   } catch (NullPointerException npe) {
     log.log(Level.SEVERE, "Attempt to access null genome", npe);
   } catch (ArrayIndexOutOfBoundsException aoobe) {

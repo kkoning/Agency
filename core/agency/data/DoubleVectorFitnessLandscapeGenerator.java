@@ -536,7 +536,7 @@ private static final class DoubleVectorIndividualGenerator {
     for (int i = 0; i < populationMean.length; i++) {
       double foo = r.nextDouble() * landscapeRange[i];
       foo += landscapeLow[i];
-      toReturn.set(i, foo);
+      toReturn.changeGene(i, foo);
     }
     return toReturn;
   }
