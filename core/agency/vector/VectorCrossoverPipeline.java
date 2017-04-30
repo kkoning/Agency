@@ -1,24 +1,25 @@
 package agency.vector;
 
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import agency.XMLConfigurable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import agency.Config;
-import agency.Individual;
-import agency.Population;
-import agency.reproduce.BreedingPipeline;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class VectorCrossoverPipeline implements BreedingPipeline {
+import agency.Config;
+import agency.Individual;
+import agency.Population;
+import agency.XMLConfigurable;
+import agency.reproduce.BreedingPipeline;
 
-BreedingPipeline source;
-double crossoverProb = 0.2;
-VectorIndividual<?> otherInd = null;
+public class VectorCrossoverPipeline implements BreedingPipeline {
+private static final long serialVersionUID = 1L;
+
+BreedingPipeline    source;
+double              crossoverProb = 0.2;
+VectorIndividual<?> otherInd      = null;
 
 @Override
 public void readXMLConfig(Element e) {
@@ -63,14 +64,21 @@ public void resumeFromCheckpoint() {
 }
 
 @Override
+@SuppressWarnings("unchecked")
 public Individual generate() {
+
+  /*
+   * Crossover produces two individuals, but this function only returns one
+   * individual at a time. The other is saved, and so can be returned
+   * immediately when the next call to generate() is made.
+   */
   if (otherInd != null) {
     Individual toReturn = otherInd;
     otherInd = null;
     return toReturn;
   }
 
-  // Crossover is not gauranteed
+  // Crossover is not guaranteed
   double crossoverDice = ThreadLocalRandom.current().nextDouble();
   boolean doCrossover = (crossoverDice < this.crossoverProb);
   if (!doCrossover)
@@ -78,22 +86,47 @@ public Individual generate() {
 
   Random r = ThreadLocalRandom.current();
 
-  VectorIndividual clone1 = (VectorIndividual<?>) source.generate();
-  VectorIndividual clone2 = (VectorIndividual<?>) source.generate();
+  /*
+   * The two individuals that we are going to do crossover on come from the
+   * source breeding pipeline. They must be VectorIndividuals. However, the
+   * breeding pipeline is configured with XML, and so it is possible that the
+   * user has chosen an incorrect configuration where VectorCrossoverPipeline is
+   * expected to operate on other types of agents. This next section of code
+   * checks for that error and returns a RuntimeException with what is hopefully
+   * a useful error message.
+   * 
+   * @SuppressWarnings("unchecked") has been used to suppress the compiler
+   * warning for this issue.
+   */
+  VectorIndividual<Object> clone1;
+  VectorIndividual<Object> clone2;
+  try {
+    clone1 = (VectorIndividual<Object>) source.generate();
+    clone2 = (VectorIndividual<Object>) source.generate();
+  } catch (ClassCastException cce) {
+    throw new RuntimeException("VectorCrossoverPipeline requires only VectorIndividuals");
+  }
 
+  /*
+   * Determine the positions for the crossover. Rather than fixing one of the
+   * end points at the end of the genome, both are determined randomly.
+   */
   int genomeSize = clone1.getGenomeLength();
-  // Assuming equal size for both parents
-
   int crossoverPos = r.nextInt(genomeSize);
   int crossoverEndPos = r.nextInt(genomeSize);
-  // do the actual crossover
-  while (crossoverPos != crossoverEndPos) {
-    Object fromClone1 = clone1.getGenomeAt(crossoverPos);
-    Object fromClone2 = clone2.getGenomeAt(crossoverPos);
-    clone1.set(crossoverPos, fromClone2);
-    clone2.set(crossoverPos, fromClone1);
 
+  /*
+   * Actually perform the crossover.
+   */
+  while (crossoverPos != crossoverEndPos) {
+    Object fromClone1 = clone1.genome[crossoverPos];
+    Object fromClone2 = clone2.genome[crossoverPos];
+    clone1.genome[crossoverPos] = fromClone2;
+    clone2.genome[crossoverPos] = fromClone1;
     crossoverPos++;
+
+    // Crossover wraps around the genome; the end condition is
+    // crossoverPos != crossoverEndPos
     if (crossoverPos == genomeSize)
       crossoverPos = 0;
   }
