@@ -90,6 +90,11 @@ public void setSourcePopulation(Population pop) {
   Integer numElites = this.numElites;
   if (numElites == null)
     numElites = (int) (pop.size() * proportionElites);
+
+  // Always
+  if (numElites <= 0)
+    numElites = 1;
+
   List<Individual> allIndividuals = pop.individuals.stream().collect(Collectors.toList());
   Collections.sort(allIndividuals, new FitnessComparator());
   elites = allIndividuals.stream().limit(numElites).collect(Collectors.toList());
