@@ -15,6 +15,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import agency.data.*;
 import agency.eval.LocalParallelEvaluator;
+import agency.reproduce.*;
 import agency.util.*;
 import agency.vector.*;
 import org.w3c.dom.Document;
@@ -24,11 +25,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import agency.eval.LocalEvaluator;
 import agency.eval.ShuffledEvaluationGroupFactory;
-import agency.reproduce.ElitismSelector;
-import agency.reproduce.FitnessProportionalSelector;
-import agency.reproduce.RandomIndividualSelector;
-import agency.reproduce.TournamentSelector;
-import agency.reproduce.WeightedBreedingPipeline;
 
 public class Config {
 public static Map<String, Class<? extends XMLConfigurable>> classXMLTagNames;
@@ -100,6 +96,8 @@ static {
   registerClassXMLTag(DataOutput.class);
   registerClassXMLTag(DefaultEnvironmentStatistics.class);
   registerClassXMLTag(LocalParallelEvaluator.class);
+
+  registerClassXMLTag(TournamentBalancer.class);
 
 }
 

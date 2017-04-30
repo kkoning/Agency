@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import agency.data.PopulationData;
 import org.w3c.dom.Document;
@@ -23,7 +22,11 @@ import agency.reproduce.BreedingPipeline;
 public class Population
         implements Serializable, XMLConfigurable {
 public static final long serialVersionUID = 1L;
+private static final int defaultBaseSize = 10;
 
+/**
+ All individuals currently present in the population.
+ */
 public List<Individual> individuals;
 
 /**
@@ -31,23 +34,22 @@ public List<Individual> individuals;
  uniquely identify this population in output statistics.  If not
  specified in the &lt;Population&rt; element, a random UUID is used.
  */
-String                        id;
+String id;
 
 /**
  During the first generation, there is no fitness history on which to
  calculate evolved population sizes as compared with other Populations in the
  same PopulationGroup.  That size is specified here.
  */
-Integer                       initialSize;
-
+Integer initialSize;
 /**
  While the number of individuals in a Population vary, it may be desirable to
  maintain a minimum number of individuals so that the Population does not go
  extinct.  The variable <i>baseSize</i> tells the inter-Population selection
  system that this population should always have at least this number of
- individuals.
+ individuals.  If none is specified, a default value of 10 is used.
  */
-Integer                       baseSize;
+Integer baseSize = defaultBaseSize;
 
 /**
  This object is used to create new individuals, not based on any previous
@@ -61,35 +63,35 @@ IndividualFactory<Individual> indFactory;
  genetic information to behavior within the agent-based model.  This is the
  function of the Agent class.  The AgentFactory produces a new agent based on
  the specified individual.
-
+ <p>
  Something that's important to note is that, while the lifetime of an Agent
  object is only for a single simulation, and therefore should never be
  present in two agent models simultaneously, the Individual object _is_.  It
  is therefore important to ensure all agent-model specific state be contained
  in the Agent object, and none in the Individual object.
  */
-AgentFactory                  agentFactory;
+AgentFactory agentFactory;
 
 /**
  The BreedingPipeline is modeled after the excellent system in ECJ.  A series
  of selectors, mutators, limiters, etc... is used to evolve the population
  between generations.
  */
-BreedingPipeline              breedingPipeline;
+BreedingPipeline breedingPipeline;
 
 /**
  These objects are responsible for writing data about this population to
  output files for analysis by other programs, i.e., a graphing or statistics
  package.
  */
-List<PopulationData>          populationDataOutputs;
+List<PopulationData> populationDataOutputs;
 
 /**
  This variable is used when the population should not go through evolution
  every generation.  The evolveCycle specifies the number of generations in
  the cycle, while evolveCycleStart and evolveCycleStop, as expected, specify
  the generation _within_ that cycle that this Population evolves.
-
+ <p>
  For example, one may have three populations evolving on a 30-generation
  cycle.  The first population evolves in generations 0-9, the second
  population in generations 10-19, and the third in generations 20-29.
@@ -98,20 +100,17 @@ Integer evolveCycle;
 int     evolveCycleStart, evolveCycleStop;
 
 /**
- * Constructor for when called programatically.  The default constructor
- * assumes initialization from readXMLConfig().
- *
- * @param indFactory
- *         A source of individuals to initialize the population.
- * @param agentFactory
- *         A way to create an agent whose behavior is based on an individual.
- * @param bp
- *         Used to generate the next generation of individuals.
- * @param initialSize
- *         The number of individuals initially present in the population.  This
- *         may change over time as this population is more or less fit as
- *         compared with the other populations in this PopulationGroup.
- */
+ Constructor for when called programatically.  The default constructor
+ assumes initialization from readXMLConfig().
+
+ @param indFactory   A source of individuals to initialize the population.
+ @param agentFactory A way to create an agent whose behavior is based on an
+ individual.
+ @param bp           Used to generate the next generation of individuals.
+ @param initialSize  The number of individuals initially present in the
+ population.  This may change over time as this population is
+ more or less fit as compared with the other populations in
+ this PopulationGroup. */
 public Population(
         IndividualFactory<? extends Individual> indFactory,
         AgentFactory agentFactory, BreedingPipeline bp, int initialSize) {
@@ -126,9 +125,9 @@ public Population(
 
 
 /**
- * Default constructor.  Called when initialization is assumed from
- * readXMLConfig().  If you are calling this function not while reading a
- * configuration file, you likely want the other constructor.
+ Default constructor.  Called when initialization is assumed from
+ readXMLConfig().  If you are calling this function not while reading a
+ configuration file, you likely want the other constructor.
  */
 public Population() {
   this.id = UUID.randomUUID().toString();
@@ -136,10 +135,9 @@ public Population() {
 }
 
 /**
- * Creates the initial set of individuals from this.indFactory
- *
- * @param size
- */
+ Creates the initial set of individuals from this.indFactory
+
+ @param size  */
 private void initializePopulation(int size) {
   individuals = new ArrayList<>();
   IntStream.range(0, size).forEach(i -> {
@@ -155,6 +153,17 @@ public void readXMLConfig(Element e) {
   if (idString != null)
     if (!idString.equalsIgnoreCase(""))
       id = idString;
+
+  String baseSizeString = e.getAttribute("baseSize");
+  if (baseSizeString != null)
+    if (!baseSizeString.equalsIgnoreCase("")) {
+      try {
+        baseSize = Integer.parseInt(baseSizeString);
+      } catch (Exception ex) {
+        throw new RuntimeException("Cannot parse baseSize of '" +
+                baseSizeString + "' into an int.");
+      }
+    }
 
   String evolveCycleString = e.getAttribute("evolveCycle");
   if (evolveCycleString != null) {
@@ -221,6 +230,8 @@ public void readXMLConfig(Element e) {
 public void writeXMLConfig(Element e) {
   Document d = e.getOwnerDocument();
   e.setAttribute("initialSize", initialSize.toString());
+  e.setAttribute("baseSize", baseSize.toString());
+
   Element indFactoryE = Config.createUnnamedElement(d, indFactory);
   Element agentFactoryE = Config.createUnnamedElement(d, agentFactory);
   Element breedPipeE = Config.createUnnamedElement(d, breedingPipeline);
@@ -243,41 +254,36 @@ public void resumeFromCheckpoint() {
 }
 
 /**
- * This function is used for creating fitness landscapes of existing
- * populations; the fitness landscape generator needs to be able to write
- * fitness samples, and won't know the details of how to do that itself.
- *
- * @return A list of population data outputs
- */
+ This function is used for creating fitness landscapes of existing
+ populations; the fitness landscape generator needs to be able to write
+ fitness samples, and won't know the details of how to do that itself.
+
+ @return A list of population data outputs */
 public List<PopulationData> getPopulationDataOutputs() {
   return populationDataOutputs;
 }
 
 /**
- * Generate a new set of individuals from the existing individuals, based on
- * their fitness.
- *
- * @param env
- *         The current environment, passed for reference to occasionally
- *         important variables such as the current generation #.
- */
+ Generate a new set of individuals from the existing individuals, based on
+ their fitness.
+
+ @param env The current environment, passed for reference to occasionally
+ important variables such as the current generation #. */
 public void reproduce(Environment env) {
   reproduce(env, this.size());
 }
 
 /**
- * Generate a new set of individuals from the existing individuals, based on
- * their fitness.
- *
- * @param env
- *         The current environment, passed for reference to occasionally
- *         important variables such as the current generation #.
- * @param populationSize
- *         The number of individuals that will be present in the next
- *         generation.  The target size may change depending on the fitness of
- *         this population as compared with other populations in a
- *         PopulationGroup.
- */
+ Generate a new set of individuals from the existing individuals, based on
+ their fitness.
+
+ @param env            The current environment, passed for reference to
+ occasionally important variables such as the current
+ generation #.
+ @param populationSize The number of individuals that will be present in the next
+ generation.  The target size may change depending on the
+ fitness of this population as compared with other
+ populations in a PopulationGroup. */
 public void reproduce(Environment env, int populationSize) {
   if (evolveCycle != null) {
     int genInCycle = env.generation % evolveCycle;
@@ -290,47 +296,43 @@ public void reproduce(Environment env, int populationSize) {
 }
 
 /**
- * Generate a new set of individuals from the existing individuals, based on
- * their fitness.  Unlike the reproduce()
- *
- * @param env
- *         The current environment, passed for reference to occasionally
- *         important variables such as the current generation #.
- * @param populationSize
- *         The number of individuals that will be present in the next
- *         generation.  The target size may change depending on the fitness of
- *         this population as compared with other populations in a
- *         PopulationGroup.
- */
+ Generate a new set of individuals from the existing individuals, based on
+ their fitness.  Unlike the reproduce()
+
+ @param env            The current environment, passed for reference to
+ occasionally important variables such as the current
+ generation #.
+ @param populationSize The number of individuals that will be present in the next
+ generation.  The target size may change depending on the
+ fitness of this population as compared with other
+ populations in a PopulationGroup. */
 public void definatelyReproduce(Environment env, int populationSize) {
 
   breedingPipeline.setSourcePopulation(this);
   List<Individual> newPopulation = IntStream.range(0, populationSize)
-                                            .mapToObj((i) -> {
-                                              Individual ind =
-                                                      breedingPipeline.generate();
-                                              return ind;
-                                            }).collect(Collectors.toList());
+          .mapToObj((i) -> {
+            Individual ind =
+                    breedingPipeline.generate();
+            return ind;
+          }).collect(Collectors.toList());
 
   individuals = newPopulation;
 
 }
 
 /**
- * @return the number of individuals currently in this population.
- */
+ @return the number of individuals currently in this population. */
 public int size() {
   return individuals.size();
 }
 
 /**
- * Creates a new agent based on the specified individual.  Uses the
- * AgentFactory associated with this population (typically as specified in
- * the configuration file).
- *
- * @param ind
- * @return
- */
+ Creates a new agent based on the specified individual.  Uses the
+ AgentFactory associated with this population (typically as specified in
+ the configuration file).
+
+ @param ind
+ @return  */
 public Agent createAgent(Individual ind) {
   return agentFactory.createAgent(ind);
 }
@@ -338,12 +340,12 @@ public Agent createAgent(Individual ind) {
 @Override
 public String toString() {
   return "Population{" +
-         "id='" + id + '\'' +
-         '}';
+          "id='" + id + '\'' +
+          '}';
 }
 
 /**
- * Closes the PopulationDataOutputs associated with this Population.
+ Closes the PopulationDataOutputs associated with this Population.
  */
 public void close() {
   for (PopulationData pd : populationDataOutputs) {
@@ -355,5 +357,11 @@ public String getId() {
   return id;
 }
 
+public int getBaseSize() {
+  if (baseSize == null)
+    return defaultBaseSize;
+  else
+    return baseSize;
+}
 
 }

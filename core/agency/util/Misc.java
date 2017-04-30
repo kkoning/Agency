@@ -5,8 +5,20 @@ package agency.util;
  */
 public class Misc {
 
+/**
+ TODO: Modify to use a logging package.
+ @param message
+ */
 public static final void BUG(String message) {
   throw new RuntimeException("BUG: " + message);
+}
+
+/**
+ TODO: Modify to use a logging package.
+ @param message
+ */
+public static final void WARN(String message) {
+  System.err.println(message);
 }
 
 }
