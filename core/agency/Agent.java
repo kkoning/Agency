@@ -31,4 +31,8 @@ void setManager(N ind);
 
 void setModel(M model);
 
+M getModel();
+
+Fitness getFitness();
+
 }

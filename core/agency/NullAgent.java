@@ -2,24 +2,20 @@ package agency;
 
 import java.util.Optional;
 
-public class NullAgent implements Agent {
+public class NullAgent implements Agent<Individual,AgentModel> {
 public static final long serialVersionUID = 1L;
 
+Fitness fitness;
 Individual ind;
 AgentModel model;
 
 @Override
-public String toString() {
-  return "NullAgent[" + getManager().toString() + "]";
-}
-
-@Override
 public void init() {
-  // Do nothing
+  // No init required
 }
 
 @Override
-public void step(AgentModel model, int step, Optional substep) {
+public void step(AgentModel model, int step, Optional<Double> substep) {
   // Do nothing
 }
 
@@ -27,7 +23,6 @@ public void step(AgentModel model, int step, Optional substep) {
 public Individual getManager() {
   return ind;
 }
-
 @Override
 public void setManager(Individual ind) {
   this.ind = ind;
@@ -37,5 +32,21 @@ public void setManager(Individual ind) {
 public void setModel(AgentModel model) {
   this.model = model;
 }
+
+@Override
+public AgentModel getModel() {
+  return model;
+}
+
+@Override
+public Fitness getFitness() {
+  return fitness;
+}
+
+public void setFitness(Fitness fitness) {
+  this.fitness = fitness;
+}
+
+
 
 }
