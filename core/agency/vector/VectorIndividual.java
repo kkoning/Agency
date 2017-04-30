@@ -31,7 +31,7 @@ public void changeGene(int position, T value) {
   genome[position] = value;
 }
 
-public T getGenomeAt(int position) {
+public T gene(int position) {
   T toReturn = null;
   try {
     T[] g = getGenome();
@@ -53,7 +53,7 @@ public String toString() {
     sb.append("null");
   } else {
     for (int i = 0; i < getGenomeLength(); i++) {
-      sb.append(getGenomeAt(i));
+      sb.append(gene(i));
       if ((i + 1) < getGenomeLength())
         sb.append(",");
     }

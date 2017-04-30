@@ -481,7 +481,7 @@ private static final class DoubleVectorIndividualGenerator {
     for (Individual i : sourcePop.individuals) {
       VectorIndividual<Double> ind = (VectorIndividual<Double>) i;
       for (int j = 0; j < stats.length; j++) {
-        stats[j].addValue(((VectorIndividual<Double>) i).getGenomeAt(j));
+        stats[j].addValue(((VectorIndividual<Double>) i).gene(j));
       }
     }
 
