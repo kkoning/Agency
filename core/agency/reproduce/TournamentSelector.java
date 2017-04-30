@@ -10,16 +10,15 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import agency.Config;
 import agency.Individual;
 import agency.Population;
 import agency.XMLConfigurable;
 
+import static agency.util.Misc.WARN;
+
 public class TournamentSelector implements BreedingPipeline, XMLConfigurable {
-int touramentSize  = 2;  // default to 2 individuals, weakest selection pressure
+int tournamentSize = 2;  // default to 2 individuals, weakest selection pressure
 int topIndividuals = 1;
 
 private List<Individual> individuals;
@@ -30,24 +29,25 @@ public TournamentSelector() {
 }
 
 public TournamentSelector(int tournamentSize) {
-  this.touramentSize = tournamentSize;
+  this.tournamentSize = tournamentSize;
 }
 
 public TournamentSelector(int tournamentSize, int topIndividuals) {
-  this.touramentSize = tournamentSize;
+  this.tournamentSize = tournamentSize;
   this.topIndividuals = topIndividuals;
 }
 
 
 @Override
 public void readXMLConfig(Element e) {
-  touramentSize = Integer.parseInt(e.getAttribute("touramentSize"));
+  // TODO: Better error messages and checking.
+  tournamentSize = Integer.parseInt(e.getAttribute("tournamentSize"));
   topIndividuals = Integer.parseInt(e.getAttribute("topIndividuals"));
 }
 
 @Override
 public void writeXMLConfig(Element e) {
-  e.setAttribute("touramentSize", Integer.toString(touramentSize));
+  e.setAttribute("tournamentSize", Integer.toString(tournamentSize));
   e.setAttribute("topIndividuals", Integer.toString(topIndividuals));
 }
 
@@ -63,10 +63,14 @@ public Individual generate() {
     return SerializationUtils.clone(toReturn);
   }
 
-  List<Individual> participants = new ArrayList<>(touramentSize);
+  List<Individual> participants = new ArrayList<>(tournamentSize);
   Random r = ThreadLocalRandom.current();
-  while (participants.size() < touramentSize) {
-    participants.add(individuals.get(r.nextInt(touramentSize)));
+  while (participants.size() < tournamentSize) {
+    if (tournamentSize > individuals.size()) {
+      tournamentSize = individuals.size();
+      WARN("Not enough individuals for full tournament selection");
+    }
+    participants.add(individuals.get(r.nextInt(tournamentSize)));
   }
   Collections.sort(participants, new FitnessComparator());
 
@@ -83,12 +87,12 @@ public void setSourcePopulation(Population pop) {
   individuals = pop.individuals.stream().map((i) -> SerializationUtils.clone(i)).collect(Collectors.toList());
 }
 
-public int getTouramentSize() {
-  return touramentSize;
+public int getTournamentSize() {
+  return tournamentSize;
 }
 
-public void setTouramentSize(int touramentSize) {
-  this.touramentSize = touramentSize;
+public void setTournamentSize(int tournamentSize) {
+  this.tournamentSize = tournamentSize;
 }
 
 public int getTopIndividuals() {
