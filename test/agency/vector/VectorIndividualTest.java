@@ -114,7 +114,7 @@ public void testLinearEqExp() {
    * 
    */
   double EXPECTED_RESULT = -8654135.51663573d;
-  
+
   double[] vars = { 2, 3, 4, 5, 6, 7, 8, 9, 10 };
   double result = testVi.linearEqExp(0, vars);
 
@@ -123,7 +123,30 @@ public void testLinearEqExp() {
   double error = result - EXPECTED_RESULT;
   assert (Math.abs(error) < 0.00000001);
 
+}
+
+@Test
+public void testConditionIndexer() {
+
+  double[] observations = { 1, 2, 3, 4, 5, 6, 7 };
+  double[] thresholds = { 0, 3, 4, 0, 0, 9, 10 };
+
+  int EXPECTED_RESULT = 0b1001100;
+  int result = VectorIndividual.conditionIndexer(thresholds, observations);
+  System.out.println("Expected " + result + "=" + EXPECTED_RESULT);
+  assert(result == EXPECTED_RESULT);
+
+  /*
+   * Comparing values to themselves should always return zero, since the binary
+   * indexing requires a strictly greater than result to trigger a 1 for that
+   * position.
+   */
+  EXPECTED_RESULT = 0;
+  result = VectorIndividual.conditionIndexer(thresholds, thresholds);
+  System.out.println("Expected " + result + "=" + EXPECTED_RESULT);
+  assert(result == EXPECTED_RESULT);
   
+
 }
 
 }

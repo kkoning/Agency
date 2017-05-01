@@ -73,8 +73,8 @@ public void replaceGenome(T[] newGenome) {
  * simulation environment.
  * 
  * This version uses double exponentiated terms for both the constant and
- * coefficients. It is useful for when the scale of the ideal values is not 
- * or cannot be known beforehand.
+ * coefficients. It is useful for when the scale of the ideal values is not or
+ * cannot be known beforehand.
  * 
  * It uses (environmentVariables+1)*2 genome positions.
  * 
@@ -158,6 +158,27 @@ public double linearEq(int start, double[] environmentVariables) {
     toReturn += coefs[i] * environmentVariables[i];
   }
   return toReturn;
+}
+
+static int conditionIndexer(double[] thresholds,
+                            double[] observations) {
+
+  // Sanity Checks
+  if (thresholds.length != observations.length)
+    throw new RuntimeException("The # of thresholds (" + thresholds.length
+        + ") must always match the number of observations ("
+        + observations.length + ")");
+  // Sanity Checks
+  if (thresholds.length > 30)
+    throw new RuntimeException("Too many thresholds");
+
+  int index = 0x0;
+  for (int i = 0; i < thresholds.length; i++) {
+    if (observations[i] > thresholds[i])
+      index = index | (0x1 << (thresholds.length - 1 - i));
+  }
+
+  return index;
 }
 
 @Override
