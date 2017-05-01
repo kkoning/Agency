@@ -17,7 +17,7 @@ public VectorIndividual<Object> mutate(VectorIndividual<Object> individual) {
 
     Range<Integer> range = vr.getRange();
     for (int pos = range.getMinimum(); pos <= range.getMaximum(); pos++) {
-      vm.mutate(individual.genome,pos);
+      vm.mutate(individual.getGenome(),pos);
     }
   }
   return individual;

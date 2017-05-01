@@ -34,7 +34,7 @@ public VectorIndividual<Object> limit(VectorIndividual<Object> individual) {
 
     Range<Integer> range = vr.getRange();
     for (int pos = range.getMinimum(); pos <= range.getMaximum(); pos++) {
-      vvl.limit(individual.genome, pos);
+      vvl.limit(individual.getGenome(), pos);
     }
   }
   return individual;

@@ -119,10 +119,14 @@ public Individual generate() {
    * Actually perform the crossover.
    */
   while (crossoverPos != crossoverEndPos) {
-    Object fromClone1 = clone1.genome[crossoverPos];
-    Object fromClone2 = clone2.genome[crossoverPos];
-    clone1.genome[crossoverPos] = fromClone2;
-    clone2.genome[crossoverPos] = fromClone1;
+    
+    Object[] clone1genome = clone1.getGenome();
+    Object[] clone2genome = clone2.getGenome();
+    
+    Object fromClone1 = clone1genome[crossoverPos];
+    Object fromClone2 = clone2genome[crossoverPos];
+    clone1genome[crossoverPos] = fromClone2;
+    clone2genome[crossoverPos] = fromClone1;
     crossoverPos++;
 
     // Crossover wraps around the genome; the end condition is
