@@ -134,7 +134,7 @@ public void testConditionIndexer() {
   int EXPECTED_RESULT = 0b1001100;
   int result = VectorIndividual.conditionIndexer(thresholds, observations);
   System.out.println("Expected " + result + "=" + EXPECTED_RESULT);
-  assert(result == EXPECTED_RESULT);
+  assert (result == EXPECTED_RESULT);
 
   /*
    * Comparing values to themselves should always return zero, since the binary
@@ -144,8 +144,82 @@ public void testConditionIndexer() {
   EXPECTED_RESULT = 0;
   result = VectorIndividual.conditionIndexer(thresholds, thresholds);
   System.out.println("Expected " + result + "=" + EXPECTED_RESULT);
-  assert(result == EXPECTED_RESULT);
-  
+  assert (result == EXPECTED_RESULT);
+
+}
+
+@Test
+public void testConditionIndexHelper() {
+
+  int genome_start_position = 5;
+  int loci_per_condition = 3;
+  double[] observations = { 1, -3, 30, 2, 1000 };
+
+  /* 
+   * Genome values starting at position 5 are 0, 1, 2, 3, 4. The binary bit is 1 if the 
+   * observed environment variable is greater than the genome.  So, with the observations 
+   * above, this should produce
+   * 
+   * Genome   Observation   Bit
+   * 0        1             1
+   * 1        -3            0
+   * 2        20            1
+   * 3        2             0
+   * 4        1000          1
+   * 
+   * 10101 is decimal 21, so the _condition_ index is 21.
+   * 
+   * So the genome offset is 21 * 3 = 63.
+   * 
+   * The result genes start at the offset (5) plus the # of observations (5), or 10.
+   * 
+   * So the function should return 73.
+   * 
+   * @formatter:off @formatter:on
+   */
+  int EXPECTED_RESULT = 73;
+
+  int position = testVi.conditionIndexHelper(observations,
+                                             genome_start_position,
+                                             loci_per_condition);
+  System.out.println("Expected " + position + "=" + EXPECTED_RESULT);
+  assert (position == EXPECTED_RESULT);
+
+}
+
+@Test
+public void testConditionIndexHelperExp() {
+
+  int genome_start_position = 5;
+  int loci_per_condition = 4;
+  double[] observations = { 1, -100, -100 };
+
+  /* 
+   * Genome values starting at position 5 are 0, 1, 2, 3, 4, 5.  However, the translation 
+   * here is slightly more complex.  With three observations:
+   * 
+   * +        -         Sum         Observation   Bit
+   * e^0      e^3       -19.1       1             1
+   * e^1      e^4       -51.9       -100          0
+   * e^2      e^5       -141        -100          1
+   * 
+   * 
+   * 101 is decimal 5, so the _condition_ index is 5.
+   * 
+   * So the genome offset is 5 * 4 = 20  
+   * 
+   * The result genes start at the offset (5) plus the # of observations (3) * 2 = 6,
+   * so 11.  Therefore the function should return 31.
+   * 
+   * @formatter:off @formatter:on
+   */
+  int EXPECTED_RESULT = 31;
+
+  int position = testVi.conditionIndexHelperExp(observations,
+                                                genome_start_position,
+                                                loci_per_condition);
+  System.out.println("Expected " + position + "=" + EXPECTED_RESULT);
+  assert (position == EXPECTED_RESULT);
 
 }
 

@@ -160,6 +160,122 @@ public double linearEq(int start, double[] environmentVariables) {
   return toReturn;
 }
 
+/**
+ * This is a utility function to associate a block of the genome with (1) a set
+ * of tests based on environment variables and (2) a set of loci that will be
+ * used when those conditions have a certain value.
+ * 
+ * This large block is broken up into two smaller blocks. The first small block
+ * contains threshold values that will be compared against the values provided
+ * by the environment. Each one of these thresholds is treated as a binary
+ * digit, and together they provide the condition index. However, it is likely
+ * that more than one loci will be used for each condition.
+ * 
+ * The number of genome locations this block takes is N + (2^N * Y), where N is
+ * the number of conditions and Y is the number of loci per condition.
+ * 
+ * @param observations
+ *          A set of observations from the environment.
+ * @param conditionsPos
+ *          The position in the genome this block of genes starts at.
+ * @param lociPerCondition
+ *          The number of genes associated with each condition.
+ * @return the position in the genome indexing the set of genes for this
+ *         condition.
+ */
+public int conditionIndexHelper(double[] observations,
+                                int conditionsPos,
+                                int lociPerCondition) {
+
+  // Get thresholds from the genome.
+  double[] thresholds = new double[observations.length];
+  for (int i = 0; i < observations.length; i++) {
+    Number threshold = Double.NaN;
+    try {
+      threshold = (Number) gene(conditionsPos + i);
+    } catch (ClassCastException cce) {
+      throw new RuntimeException("Cannot use "
+          + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
+    }
+    thresholds[i] = threshold.doubleValue();
+  }
+
+  int conditionIndex = conditionIndexer(thresholds, observations);
+  int lociBlockOffset = conditionIndex * lociPerCondition;
+  int totalOffset = conditionsPos + observations.length + lociBlockOffset;
+
+  return totalOffset;
+}
+
+/**
+ * This is a utility function to associate a block of the genome with (1) a set
+ * of tests based on environment variables and (2) a set of loci that will be
+ * used when those conditions have a certain value.
+ * 
+ * This large block is broken up into three smaller blocks. The first two are
+ * related to determining the combination of conditions. The larger third block
+ * contains <i>lociPerCondition</i> genes for every possible combination of
+ * conditions. Each of the first two block is exactly <i>observations.length</i>
+ * long. Each is exponentiated (raised to e^x) and multiplied by the values in
+ * the observations[] array. The values from the second block are subtracted
+ * from the first block, and the resulting numbers are considered the threshold
+ * values. Each unique combination has lociPerCondition genes associated with
+ * it. The function returns the index to that block of genes.
+ * 
+ * The number of genome locations this block takes is 2N + (2^N * M), where N is
+ * the number of conditions (observations.length) and M is lociPerCondition.
+ * 
+ * @param observations
+ *          A set of observations from the environment.
+ * @param conditionsPos
+ *          The position in the genome this block of genes starts at.
+ * @param lociPerCondition
+ *          The number of genes associated with each condition.
+ * @return the position in the genome indexing the set of genes for this
+ *         condition.
+ */
+public int conditionIndexHelperExp(double[] observations,
+                                   int conditionsPos,
+                                   int lociPerCondition) {
+
+  // Get thresholds from the genome.
+  double[] posThresholds = new double[observations.length];
+  for (int i = 0; i < observations.length; i++) {
+    Number threshold = Double.NaN;
+    try {
+      threshold = (Number) gene(conditionsPos + i);
+    } catch (ClassCastException cce) {
+      throw new RuntimeException("Cannot use "
+          + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
+    }
+    posThresholds[i] = threshold.doubleValue();
+  }
+
+  double[] negThresholds = new double[observations.length];
+  for (int i = 0; i < observations.length; i++) {
+    Number threshold = Double.NaN;
+    try {
+      threshold = (Number) gene(conditionsPos + observations.length + i);
+    } catch (ClassCastException cce) {
+      throw new RuntimeException("Cannot use "
+          + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
+    }
+    negThresholds[i] = threshold.doubleValue();
+  }
+
+  // Sum components of thresholds
+  double[] thresholds = new double[observations.length];
+  for (int i = 0; i < observations.length; i++) {
+    thresholds[i] = Math.exp(posThresholds[i]) - Math.exp(negThresholds[i]);
+  }
+
+  int conditionIndex = conditionIndexer(thresholds, observations);
+  int lociBlockOffset = conditionIndex * lociPerCondition;
+  int totalOffset = conditionsPos + (observations.length * 2) + lociBlockOffset;
+
+  return totalOffset;
+}
+
 static int conditionIndexer(double[] thresholds,
                             double[] observations) {
 
