@@ -84,9 +84,9 @@ public void replaceGenome(T[] newGenome) {
  */
 public double linearEqExp(int position, double[] environmentVariables) {
   double toReturn = 0;
-  
-  toReturn += e(position++);  // Positive Constant
-  toReturn -= e(position++);  // Negative Constant
+
+  toReturn += e(position++); // Positive Constant
+  toReturn -= e(position++); // Negative Constant
   for (int i = 0; i < environmentVariables.length; i++) {
     toReturn += e(position++) * environmentVariables[i];
     toReturn -= e(position++) * environmentVariables[i];
@@ -152,7 +152,6 @@ public static int linearEqGenomeLength(int numEnvironmentVariables) {
   return (numEnvironmentVariables + 1);
 }
 
-
 /**
  * This is a utility function to associate a block of the genome with (1) a set
  * of tests based on environment variables and (2) a set of loci that will be
@@ -198,6 +197,20 @@ public int conditionIndexHelper(double[] observations,
   int totalOffset = conditionsPos + observations.length + lociBlockOffset;
 
   return totalOffset;
+}
+
+/**
+ * Convenience method for calculating the length of the genome segments
+ * necessary to use a conditionIndexHelper. Probably most useful in the static
+ * section of agents, so that genome size does not need to be calculated by hand
+ * there.
+ * 
+ * @param numConditions
+ * @param lociPerCondition
+ * @return numConditions + (0x1 << numConditions) * lociPerCondition;
+ */
+public static int conditionIndexHelperGenomeLength(int numConditions, int lociPerCondition) {
+  return numConditions + (0x1 << numConditions) * lociPerCondition;
 }
 
 /**
@@ -267,6 +280,20 @@ public int conditionIndexHelperExp(double[] observations,
   int totalOffset = conditionsPos + (observations.length * 2) + lociBlockOffset;
 
   return totalOffset;
+}
+
+/**
+ * Convenience method for calculating the length of the genome segments
+ * necessary to use a conditionIndexHelperExp. Probably most useful in the
+ * static section of agents, so that genome size does not need to be calculated
+ * by hand there.
+ * 
+ * @param numConditions
+ * @param lociPerCondition
+ * @return (numConditions * 2) + (0x1 << numConditions) * lociPerCondition;
+ */
+public static int conditionIndexHelperExpGenomeLength(int numConditions, int lociPerCondition) {
+  return (numConditions * 2) + (0x1 << numConditions) * lociPerCondition;
 }
 
 static int conditionIndexer(double[] thresholds,
