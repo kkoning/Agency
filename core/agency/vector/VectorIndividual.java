@@ -78,39 +78,18 @@ public void replaceGenome(T[] newGenome) {
  * 
  * It uses (environmentVariables+1)*2 genome positions.
  * 
- * @param start
+ * @param position
  * @param environmentVariables
  * @return
  */
-public double linearEqExp(int start, double[] environmentVariables) {
-
-  /*
-   * To start, convert the genome into the required doubles.
-   */
-  // Allocate variables
-  double constPos;
-  double constNeg;
-  double[] coefsPos = new double[environmentVariables.length];
-  double[] coefsNeg = new double[environmentVariables.length];
-
-  // Grab Constants
-  constPos = e(start);
-  constNeg = e(start + 1);
-
-  // Grab Coefficients
-  int pos = start + 2;
+public double linearEqExp(int position, double[] environmentVariables) {
+  double toReturn = 0;
+  
+  toReturn += e(position++);  // Positive Constant
+  toReturn -= e(position++);  // Negative Constant
   for (int i = 0; i < environmentVariables.length; i++) {
-    coefsPos[i] = e(pos++);
-    coefsNeg[i] = e(pos++);
-  }
-
-  // Do multiplications and sum
-  double toReturn = 0d;
-  toReturn += constPos;
-  toReturn -= constNeg;
-  for (int i = 0; i < environmentVariables.length; i++) {
-    toReturn += coefsPos[i] * environmentVariables[i];
-    toReturn -= coefsNeg[i] * environmentVariables[i];
+    toReturn += e(position++) * environmentVariables[i];
+    toReturn -= e(position++) * environmentVariables[i];
   }
   return toReturn;
 }
@@ -141,34 +120,23 @@ public static int linearEqExpGenomeLength(int numEnvironmentVariables) {
  * It requires environmentVariables + 1 positions on the genome; one for each
  * coefficient and one for the constant.
  * 
- * @param start
+ * @param position
  * @param environmentVariables
  * 
  * @return constant + Sum(Coef_n * Var_n)
  */
-public double linearEq(int start, double[] environmentVariables) {
+public double linearEq(int position, double[] environmentVariables) {
 
-  /*
-   * To start, convert the genome into the required doubles.
-   */
-  // Allocate variables
-  double constant = 0d;
-  double[] coefs = new double[environmentVariables.length];
-
-  // Grab Constants
-  constant += ((Number) gene(start)).doubleValue();
-
-  // Grab Coefficients
-  for (int i = 0; i < environmentVariables.length; i++) {
-    coefs[i] += ((Number) gene(start + 1 + i)).doubleValue();
-  }
-
-  // Do multiplications and sum
   double toReturn = 0d;
-  toReturn += constant;
-  for (int i = 0; i < environmentVariables.length; i++) {
-    toReturn += coefs[i] * environmentVariables[i];
+  try {
+    toReturn += ((Number) genome[position++]).doubleValue();
+    for (int i = 0; i < environmentVariables.length; i++) {
+      toReturn += ((Number) genome[position++]).doubleValue() * environmentVariables[i];
+    }
+  } catch (ClassCastException cce) {
+    throw new RuntimeException("Can only use linearEq on Numeric values");
   }
+
   return toReturn;
 }
 
