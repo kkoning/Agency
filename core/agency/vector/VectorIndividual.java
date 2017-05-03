@@ -116,6 +116,18 @@ public double linearEqExp(int start, double[] environmentVariables) {
 }
 
 /**
+ * Convenience method for calculating the length of the genome segments
+ * necessary to use linearEqExp. Probably most useful in the static section of
+ * agents, so that genome size does not need to be calculated by hand there.
+ * 
+ * @param numEnvironmentVariables
+ * @return
+ */
+public static int linearEqExpGenomeLength(int numEnvironmentVariables) {
+  return (numEnvironmentVariables + 1) * 2;
+}
+
+/**
  * This is a convenience method that uses a region of the genome to evolve
  * coefficients in a linear equation over variables collected from the
  * simulation environment.
@@ -159,6 +171,19 @@ public double linearEq(int start, double[] environmentVariables) {
   }
   return toReturn;
 }
+
+/**
+ * Convenience method for calculating the length of the genome segments
+ * necessary to use linearEq. Probably most useful in the static section of
+ * agents, so that genome size does not need to be calculated by hand there.
+ * 
+ * @param numEnvironmentVariables
+ * @return
+ */
+public static int linearEqGenomeLength(int numEnvironmentVariables) {
+  return (numEnvironmentVariables + 1);
+}
+
 
 /**
  * This is a utility function to associate a block of the genome with (1) a set
