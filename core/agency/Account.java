@@ -4,8 +4,8 @@ public class Account {
 
 public static final long serialVersionUID = 1L;
 
-double balance;
-boolean balanceRestricted;
+private double balance;
+private boolean balanceRestricted;
 
 /**
  * Creates an account with a zero balance which can be negative.
@@ -22,6 +22,7 @@ public Account() {
  */
 public Account(double startingBalance) {
   this();
+  verifySaneAmount(startingBalance);
   balance = startingBalance;
 }
 
@@ -45,6 +46,7 @@ public static void payment(
 }
 
 public void receive(double amount) {
+  verifySaneAmount(amount);
   balance += amount;
 }
 
@@ -58,6 +60,7 @@ public void receive(double amount) {
  *         to go negative.
  */
 public void pay(double amount) throws PaymentException {
+  verifySaneAmount(amount);
   if (balanceRestricted) {
     if (balance > amount) {
       balance -= amount;
@@ -71,6 +74,7 @@ public void pay(double amount) throws PaymentException {
 }
 
 public void payTo(Account other, double amount) throws PaymentException {
+  verifySaneAmount(amount);
   if (other == this)
     return; // No point in paying ourselves...
   pay(amount);
@@ -78,6 +82,7 @@ public void payTo(Account other, double amount) throws PaymentException {
 }
 
 public void receiveFrom(Account other, double amount) throws PaymentException {
+  verifySaneAmount(amount);
   other.pay(amount);
   receive(amount);
 }
@@ -104,7 +109,13 @@ public double getBalance() {
  */
 @Deprecated
 public void forceBalance(double balance) {
+  verifySaneAmount(balance);
   this.balance = balance;
+}
+
+private void verifySaneAmount(double amount) {
+  if (Double.isNaN(amount) || Double.isInfinite(amount))
+    throw new RuntimeException();
 }
 
 @Override
@@ -152,6 +163,7 @@ public static class PaymentException extends Exception {
   }
 
 }
+
 
 
 }
