@@ -32,7 +32,10 @@ public void setModel(M model) {
  * @return a SimpleFitness equal to the firm's balance.
  */
 public SimpleFitness getFitness() {
-  SimpleFitness fit = new SimpleFitness(account.balance);
+  if (Double.isNaN(account.getBalance()) || 
+      Double.isInfinite(account.getBalance()))
+    throw new RuntimeException("Illegal fitness: " + account.getBalance());
+  SimpleFitness fit = new SimpleFitness(account.getBalance());
   return fit;
 }
 
