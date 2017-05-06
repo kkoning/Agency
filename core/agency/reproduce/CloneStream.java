@@ -24,8 +24,6 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import agency.Individual;
 
 public class CloneStream implements Stream<Individual> {
@@ -37,7 +35,7 @@ public CloneStream(Stream<Individual> source) {
 }
 
 static Individual cloneIndividual(Individual source) {
-  Individual clone = SerializationUtils.clone(source);
+  Individual clone = source.copy();
   clone.setUUID(UUID.randomUUID());
   List<UUID> parentIDs = new ArrayList<>(1);
   clone.setParentIDs(parentIDs);

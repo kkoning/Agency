@@ -1,5 +1,7 @@
 package agency.reproduce;
 
+import static agency.util.Misc.WARN;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -7,22 +9,20 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.w3c.dom.Element;
+
 import agency.Individual;
 import agency.Population;
 import agency.XMLConfigurable;
 
-import static agency.util.Misc.WARN;
-
 public class TournamentSelector implements BreedingPipeline, XMLConfigurable {
-int tournamentSize = 2;  // default to 2 individuals, weakest selection pressure
+private static final long serialVersionUID = 1L;
+
+int tournamentSize = 2; // default to 2 individuals, weakest selection pressure
 int topIndividuals = 1;
 
-private List<Individual> individuals;
-
+private List<Individual>  individuals;
 private Queue<Individual> inPipeline = new LinkedBlockingQueue<>();
 
 public TournamentSelector() {
@@ -36,7 +36,6 @@ public TournamentSelector(int tournamentSize, int topIndividuals) {
   this.tournamentSize = tournamentSize;
   this.topIndividuals = topIndividuals;
 }
-
 
 @Override
 public void readXMLConfig(Element e) {
@@ -58,9 +57,11 @@ public void resumeFromCheckpoint() {
 
 @Override
 public Individual generate() {
+
   if (!inPipeline.isEmpty()) {
-    Individual toReturn = inPipeline.remove();
-    return SerializationUtils.clone(toReturn);
+    Individual ancestor = inPipeline.remove();
+    Individual clone = ancestor.copy();
+    return clone;
   }
 
   List<Individual> participants = new ArrayList<>(tournamentSize);
@@ -77,14 +78,14 @@ public Individual generate() {
   for (int j = 1; j < topIndividuals; j++) {
     inPipeline.add(participants.get(j));
   }
-  Individual toReturn = participants.get(0);
-
-  return SerializationUtils.clone(toReturn);
+  Individual ancestor = participants.get(0);
+  Individual clone = ancestor.copy();
+  return clone;
 }
 
 @Override
 public void setSourcePopulation(Population pop) {
-  individuals = pop.individuals.stream().map((i) -> SerializationUtils.clone(i)).collect(Collectors.toList());
+  individuals = pop.individuals;
 }
 
 public int getTournamentSize() {

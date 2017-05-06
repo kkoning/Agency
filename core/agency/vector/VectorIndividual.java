@@ -2,12 +2,31 @@ package agency.vector;
 
 import static agency.Agency.log;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
+import com.esotericsoftware.kryo.Kryo;
+
 import agency.AbstractIndividual;
+import agency.Individual;
 
 public class VectorIndividual<T> extends AbstractIndividual {
 private static final long serialVersionUID = 1;
+
+/**
+ * Breeding pipelines require individuals to be cloned, because they may be an
+ * ancestor for more than one individual in the next generation. This is
+ * performed for every individual in every generation, so it is performance
+ * sensitive. By default, Agency uses the high-performance Kryo package to
+ * perform a "deep copy" clone. Kryo is not threadsafe, so Individual uses the
+ * ThreadLocal approach as definied in the Kryo documentation.
+ */
+static final ThreadLocal<Kryo> kryos = new ThreadLocal<Kryo>() {
+protected Kryo initialValue() {
+  Kryo kryo = new Kryo();
+  return kryo;
+};
+};
 
 private T[] genome;
 
@@ -15,6 +34,19 @@ private T[] genome;
 public VectorIndividual(int genomeSize) {
   // T is guaranteed to be an object, not a primitive
   genome = (T[]) new Object[genomeSize];
+}
+
+@Override
+public Individual copy() {
+  /*
+   * By default, use Kryo to do a fast deep copy of the individual's genome. If
+   * a deep copy is not appropriate, this method should be overridden.
+   */
+  Kryo kryo = kryos.get();
+  VectorIndividual<T> clone = new VectorIndividual<>(this.genome.length);
+  clone.setUUID(UUID.randomUUID()); // TODO: Potential psuedo-random issue
+  clone.genome = kryo.copy(genome);
+  return clone;
 }
 
 public T[] getGenome() {
@@ -88,8 +120,12 @@ public double linearEqExp(int position, double[] environmentVariables) {
   toReturn += e(position++); // Positive Constant
   toReturn -= e(position++); // Negative Constant
   for (int i = 0; i < environmentVariables.length; i++) {
-    toReturn += e(position++) * environmentVariables[i];
-    toReturn -= e(position++) * environmentVariables[i];
+    // Ignore NaN and Infinite environment terms
+    double envVal = environmentVariables[i];
+    if (Double.isInfinite(envVal) || Double.isNaN(envVal))
+      envVal = 0d;
+    toReturn += e(position++) * envVal;
+    toReturn -= e(position++) * envVal;
   }
   return toReturn;
 }

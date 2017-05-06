@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.SerializationUtils;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import agency.Config;
+
 import agency.Individual;
 import agency.Population;
 import agency.XMLConfigurable;
@@ -81,7 +79,8 @@ public Individual generate() {
     currentPosition = 0;
 
   Individual toReturn = elites.get(currentPosition);
-  return SerializationUtils.clone(toReturn);
+  Individual clone = toReturn.copy();
+  return clone;
 }
 
 @Override

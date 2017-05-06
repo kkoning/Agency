@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.w3c.dom.Element;
+
 import agency.Fitness;
 import agency.Individual;
 import agency.Population;
@@ -16,6 +16,8 @@ import agency.SimpleFitness;
 import agency.XMLConfigurable;
 
 public class FitnessProportionalSelector implements BreedingPipeline, XMLConfigurable {
+private static final long serialVersionUID = 1L;
+
 private static Logger                      log            = Logger.getLogger(FitnessProportionalSelector.class.getCanonicalName());
 private static double                      fitCeilingWarn = Double.MAX_VALUE / 2;
 private        TreeMap<Double, Individual> individuals    = new TreeMap<>();
@@ -43,8 +45,9 @@ public void resumeFromCheckpoint() {
 public Individual generate() {
   Random r = ThreadLocalRandom.current();
   double target = r.nextDouble() * totalFitness;
-  Individual toReturn = individuals.ceilingEntry(target).getValue();
-  return SerializationUtils.clone(toReturn);
+  Individual parent = individuals.ceilingEntry(target).getValue();
+  Individual clone = parent.copy();
+  return clone;
 }
 
 @Override
