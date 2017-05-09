@@ -95,6 +95,22 @@ public double e(int position) {
   return toReturn;
 }
 
+/**
+ * This is a convenience method for exponentiating genome values but allowing
+ * both positive and negative results. As e^x is always positive, this requires
+ * two loci.
+ * 
+ * @param position
+ *          The location in the genome of (x,y).
+ * @return e^x-e^y
+ */
+public double e2(int position) {
+  double positive = e(position);
+  double negative = e(position + 1);
+  double result = positive - negative;
+  return result;
+}
+
 public void replaceGenome(T[] newGenome) {
   genome = newGenome;
 }
@@ -223,7 +239,7 @@ public int conditionIndexHelper(double[] observations,
       threshold = (Number) gene(conditionsPos + i);
     } catch (ClassCastException cce) {
       throw new RuntimeException("Cannot use "
-          + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
+                                 + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
     }
     thresholds[i] = threshold.doubleValue();
   }
@@ -288,7 +304,7 @@ public int conditionIndexHelperExp(double[] observations,
       threshold = (Number) gene(conditionsPos + i);
     } catch (ClassCastException cce) {
       throw new RuntimeException("Cannot use "
-          + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
+                                 + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
     }
     posThresholds[i] = threshold.doubleValue();
   }
@@ -300,7 +316,7 @@ public int conditionIndexHelperExp(double[] observations,
       threshold = (Number) gene(conditionsPos + observations.length + i);
     } catch (ClassCastException cce) {
       throw new RuntimeException("Cannot use "
-          + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
+                                 + "VectorIndividual.conditionIndexHelper on non-Numeric Values");
     }
     negThresholds[i] = threshold.doubleValue();
   }
@@ -338,8 +354,8 @@ static int conditionIndexer(double[] thresholds,
   // Sanity Checks
   if (thresholds.length != observations.length)
     throw new RuntimeException("The # of thresholds (" + thresholds.length
-        + ") must always match the number of observations ("
-        + observations.length + ")");
+                               + ") must always match the number of observations ("
+                               + observations.length + ")");
   // Sanity Checks
   if (thresholds.length > 30)
     throw new RuntimeException("Too many thresholds");
