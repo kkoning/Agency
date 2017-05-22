@@ -292,11 +292,9 @@ public void evolve() {
   //  }
 
 
-  // Save checkpoint to archive, if appropriate
-  if (checkpointsArchive != null) {
-    if ((generation % checkpointEvery) == 0) {
-      saveCheckpointToArchive();
-    }
+  // Save checkpoint, if appropriate
+  if ((generation % checkpointEvery) == 0) {
+    saveCheckpoint(this);
   }
 
   generation++;
