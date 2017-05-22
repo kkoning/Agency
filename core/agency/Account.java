@@ -60,7 +60,12 @@ public void receive(double amount) {
  *         to go negative.
  */
 public void pay(double amount) throws PaymentException {
+  // Infinity/NaN check
   verifySaneAmount(amount);
+  // But this must also be positive.
+  if (amount < 0)
+    throw new PaymentException("Cannot pay a negative amount.");
+  
   if (balanceRestricted) {
     if (balance > amount) {
       balance -= amount;
@@ -75,6 +80,10 @@ public void pay(double amount) throws PaymentException {
 
 public void payTo(Account other, double amount) throws PaymentException {
   verifySaneAmount(amount);
+  // Amount must be positive
+  if (amount < 0)
+    throw new PaymentException("Cannot pay a negative amount.");
+  
   if (other == this)
     return; // No point in paying ourselves...
   pay(amount);
@@ -83,6 +92,10 @@ public void payTo(Account other, double amount) throws PaymentException {
 
 public void receiveFrom(Account other, double amount) throws PaymentException {
   verifySaneAmount(amount);
+  // Amount must be positive
+  if (amount < 0)
+    throw new PaymentException("Cannot receive a negative amount.");
+  
   other.pay(amount);
   receive(amount);
 }
@@ -141,6 +154,10 @@ public static class PaymentException extends Exception {
   double balance;
   double amount;
 
+  public PaymentException(String message) {
+    super(message);
+  }
+  
   public PaymentException(double balance, double amount) {
     super("Insufficient balance (" + balance + ") to pay " + amount);
     this.balance = balance;
