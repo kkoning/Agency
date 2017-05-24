@@ -48,15 +48,15 @@ public void run() {
   if (finished)
     throw new RuntimeException("Cannot run an EvaluationGroup twice.");
 
-  // Initialize the model
-  model.init();
-
   // Associate the Agents with the model and vice versa
   for (Agent agent : agents) {
     model.addAgent(agent);
     agent.setModel(model);
   }
 
+  // Initialize the model
+  model.init();
+  
   // Initialize all the agents.
   for (Agent agent : agents) {
     agent.init();
