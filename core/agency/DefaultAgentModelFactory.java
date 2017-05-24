@@ -10,7 +10,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class DefaultAgentModelFactory implements AgentModelFactory {
+public class DefaultAgentModelFactory implements AgentModelFactory<AgentModel> {
 public static final long serialVersionUID = 1L;
 
 String              className;
@@ -28,7 +28,6 @@ public DefaultAgentModelFactory(Class<? extends AgentModel> agentModelClass) {
   this.agentModelClass = agentModelClass;
 }
 
-@SuppressWarnings("unchecked")
 @Override
 public void readXMLConfig(Element e) {
   className = e.getAttribute("modelClass");
@@ -82,11 +81,12 @@ private void initModelClass() {
 private void initParameters() {
 
   /*
-   * The strings from the configuration are stored in the parameterStrings map.  Reflection is
-   * needed to detect these fields so that they can be set.  This function does that, and saves
-   * the reflected Field objects in the Map<Field,Object> parameters.  Since this map cannot
-   * be saved between checkpoints (the Field class is not serializable), this function must
-   * be called again in the case of restarting from a checkpoint.
+   * The strings from the configuration are stored in the parameterStrings map.
+   * Reflection is needed to detect these fields so that they can be set. This
+   * function does that, and saves the reflected Field objects in the
+   * Map<Field,Object> parameters. Since this map cannot be saved between
+   * checkpoints (the Field class is not serializable), this function must be
+   * called again in the case of restarting from a checkpoint.
    *
    * Must be called _after_ initModelClass().
    */
@@ -94,19 +94,17 @@ private void initParameters() {
   for (Map.Entry<String, String> parameterString : parameterStrings.entrySet()) {
     Field f;
     try {
-      f = agentModelClass.getDeclaredField(parameterString.getKey());
+      f = recursivelyFindField(agentModelClass, parameterString.getKey());
       f.setAccessible(true);
-    } catch (NoSuchFieldException e1) {
-      throw new UnsupportedOperationException(
-              "Parameter \"" + parameterString.getKey() +
-                      "\" does not appear to be the name of a field in the specified AgentModel class");
     } catch (SecurityException e1) {
       throw new UnsupportedOperationException(
-              "Parameter \"" + parameterString.getKey() +
-                      "\" corresponds to a field in an AgentModel class which threw a SecurityException", e1);
+                                              "Parameter \"" + parameterString.getKey() +
+                                              "\" corresponds to a field in an AgentModel class which threw a SecurityException",
+                                              e1);
     }
 
-    // Parse the value of the parameter consistently with the type of the target field.
+    // Parse the value of the parameter consistently with the type of the target
+    // field.
     Class<?> fieldClass = f.getType();
     if (fieldClass.equals(Double.class)) {
       parameters.put(f, Double.parseDouble(parameterString.getValue()));
@@ -115,12 +113,26 @@ private void initParameters() {
     } else if (fieldClass.equals(Boolean.class)) {
       parameters.put(f, Boolean.parseBoolean(parameterString.getValue()));
     } else {
-      throw new UnsupportedOperationException(
-              this.getClass().getName() + " only supports parameter types of Double, Integer, and Boolean");
+      throw new UnsupportedOperationException(this.getClass().getName()
+                                              + " only supports parameter types of Double, Integer, and Boolean");
     }
   }
 }
 
+private Field recursivelyFindField(Class<?> agentModelClass, String fieldName) {
+  Field f;
+  try {
+    f = agentModelClass.getDeclaredField(fieldName);
+  } catch (NoSuchFieldException e1) {
+    Class<?> parentClass = agentModelClass.getSuperclass();
+    if (parentClass == null)
+      throw new UnsupportedOperationException("Parameter \"" + fieldName +
+                                              "\" does not appear to be the name of a field in "
+                                              + "the specified AgentModel class or any superclass.");
+    f = recursivelyFindField(parentClass, fieldName);
+  }
+  return f;
+}
 
 @Override
 public void writeXMLConfig(Element e) {
@@ -155,12 +167,14 @@ public AgentModel createAgentModel() {
     model = agentModelClass.newInstance();
   } catch (InstantiationException | IllegalAccessException e) {
     throw new RuntimeException(
-            "Cannot instantiate AgentModel of class " + agentModelClass.getCanonicalName() +
-                    ".  Ensure there is a no-argument constructor?", e);
+                               "Cannot instantiate AgentModel of class "
+                               + agentModelClass.getCanonicalName() +
+                               ".  Ensure there is a no-argument constructor?", e);
   }
 
   /*
-   * Next, set the parameters from the configuration file using the reflected / saved values.
+   * Next, set the parameters from the configuration file using the reflected /
+   * saved values.
    */
   for (Map.Entry<Field, Object> entry : parameters.entrySet()) {
     Field f = entry.getKey();
@@ -168,7 +182,8 @@ public AgentModel createAgentModel() {
     try {
       f.set(model, v);
     } catch (IllegalArgumentException | IllegalAccessException e) {
-      throw new UnsupportedOperationException("Cannot set parameter " + f.getName() + ".  Is it accessible?", e);
+      throw new UnsupportedOperationException("Cannot set parameter " + f.getName()
+                                              + ".  Is it accessible?", e);
     }
 
   }
@@ -183,6 +198,5 @@ public AgentModel createAgentModel() {
 public void close() {
   // Unnecessary
 }
-
 
 }

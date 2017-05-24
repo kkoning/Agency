@@ -29,5 +29,9 @@ public void init() {
     BUG("Max Steps is null at initialization; model will run forever");
 }
 
+@Override
+public int getMaxSteps() {
+  return this.maxSteps;
+}
 
 }
