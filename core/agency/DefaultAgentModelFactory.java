@@ -105,16 +105,19 @@ private void initParameters() {
 
     // Parse the value of the parameter consistently with the type of the target
     // field.
-    Class<?> fieldClass = f.getType();
+    Class fieldClass = f.getType();
     if (fieldClass.equals(Double.class)) {
       parameters.put(f, Double.parseDouble(parameterString.getValue()));
     } else if (fieldClass.equals(Integer.class)) {
       parameters.put(f, Integer.parseInt(parameterString.getValue()));
     } else if (fieldClass.equals(Boolean.class)) {
       parameters.put(f, Boolean.parseBoolean(parameterString.getValue()));
+    } else if (fieldClass.isEnum()) {
+      Enum<?> value = Enum.valueOf(fieldClass, parameterString.getValue());
+      parameters.put(f, value);
     } else {
       throw new UnsupportedOperationException(this.getClass().getName()
-                                              + " only supports parameter types of Double, Integer, and Boolean");
+                                              + " only supports parameter types of Enum, Double, Integer, and Boolean");
     }
   }
 }
