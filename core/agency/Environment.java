@@ -293,9 +293,10 @@ public void evolve() {
 
 
   // Save checkpoint, if appropriate
-  if ((generation % checkpointEvery) == 0) {
-    saveCheckpoint(this);
-  }
+  if (checkpointEvery != null)
+    if ((generation % checkpointEvery) == 0) {
+      saveCheckpoint(this);
+    }
 
   generation++;
 }public static void saveCheckpoint(Environment env) {
