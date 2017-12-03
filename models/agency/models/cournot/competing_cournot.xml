@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Environment checkpointEvery="10000">
+ <PopulationGroup id="CournotAgents" totalSize="300">
+  <TournamentBalancer tournamentSize="2" topIndividuals="1"/>
+
+  <Population baseSize="10" initialSize="100" id="DirectlyEncodedCournotAgents">
+   <DefaultAgentFactory agentClass="agency.models.cournot.DirectlyEncodedCournotAgent"/>
+   <VectorIndividualFactory length="1">
+    <GaussianRandomVectorRange start="0" end="0">
+     <Means type="RepeatingDouble" start="0" end="0" value="33"/>
+     <Deviations type="RepeatingDouble" start="0" end="0" value="0.1"/>
+    </GaussianRandomVectorRange>
+   </VectorIndividualFactory>
+   <VectorMutationPipeline>
+    <TournamentSelector topIndividuals="1" tournamentSize="2"/>
+    <VectorMutator length="1">
+     <GaussianMutator start="0" end="0">
+      <MutationProbability type="RepeatingDouble" start="0" end="0" value="0.1"/>
+      <Deviations type="RepeatingDouble" start="0" end="7" value="0.5"/>
+     </GaussianMutator>
+    </VectorMutator>
+   </VectorMutationPipeline>
+  </Population>
+
+  <Population baseSize="10" initialSize="100" id="MimicCournotAgents">
+   <DefaultAgentFactory agentClass="agency.models.cournot.MimicCournotAgent"/>
+   <VectorIndividualFactory length="1">
+    <GaussianRandomVectorRange start="0" end="0">
+     <Means type="RepeatingDouble" start="0" end="0" value="25"/>
+     <Deviations type="RepeatingDouble" start="0" end="0" value="0.1"/>
+    </GaussianRandomVectorRange>
+   </VectorIndividualFactory>
+   <VectorMutationPipeline>
+    <TournamentSelector topIndividuals="1" tournamentSize="2"/>
+    <VectorMutator length="1">
+     <GaussianMutator start="0" end="0">
+      <MutationProbability type="RepeatingDouble" start="0" end="0" value="0.1"/>
+      <Deviations type="RepeatingDouble" start="0" end="7" value="0.5"/>
+     </GaussianMutator>
+    </VectorMutator>
+   </VectorMutationPipeline>
+  </Population>
+
+  <Population baseSize="10" initialSize="100" id="EvolvingTriggerCournotAgents">
+   <DefaultAgentFactory agentClass="agency.models.cournot.EvolvingTriggerCournotAgent"/>
+   <VectorIndividualFactory length="4">
+    <GaussianRandomVectorRange start="0" end="3">
+     <Means type="DoubleList" start="0" end="3">25 27 25 33</Means>
+     <Deviations type="RepeatingDouble" start="0" end="3" value="0.1"/>
+    </GaussianRandomVectorRange>
+   </VectorIndividualFactory>
+   <VectorMutationPipeline>
+    <TournamentSelector topIndividuals="1" tournamentSize="2"/>
+    <VectorMutator length="1">
+     <GaussianMutator start="0" end="0">
+      <MutationProbability type="RepeatingDouble" start="0" end="3" value="0.1"/>
+      <Deviations type="RepeatingDouble" start="0" end="3" value="0.5"/>
+     </GaussianMutator>
+    </VectorMutator>
+   </VectorMutationPipeline>
+  </Population>
+
+ </PopulationGroup>
+
+  <!-- Need an EvaluationGroupFactory -->
+ <ShuffledEvaluationGroupFactory numGroups="500">
+  <AgentSource populationGroup="CournotAgents" numAgents="2"/>
+ </ShuffledEvaluationGroupFactory>
+
+  <!-- Need an Agent Model Factory -->
+ <DefaultAgentModelFactory modelClass="agency.models.cournot.CournotGame">
+  <Parameter name="demandConstant" value="100"/> <!-- 1 for testing -->
+  <Parameter name="demandCoefficient" value="1"/> <!-- 1 for testing -->
+  <Parameter name="minimumQuantity" value="0.00001"/> <!-- 1 for testing -->
+  <Parameter name="maxSteps" value="10"/> <!-- 10 for testing -->
+
+ </DefaultAgentModelFactory>
+
+ <!-- Environment Statistics -->
+ <DefaultEnvironmentStatistics file="DefaultEnvironmentStatistics.csv" format="csv"/>
+
+ <!-- Need an Evaluator -->
+ <LocalEvaluator/>
+ <!-- <LocalParallelEvaluator/>
+ -->
+ <!-- Simulation data output -->
+ <DefaultModelSummaryData generations="100" file="summary.csv" format="csv"/>
+
+</Environment>
