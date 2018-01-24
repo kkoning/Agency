@@ -15,8 +15,8 @@
     <TournamentSelector topIndividuals="1" tournamentSize="2"/>
     <VectorMutator length="1">
      <GaussianMutator start="0" end="0">
-      <MutationProbability type="RepeatingDouble" start="0" end="0" value="1"/>
-      <Deviations type="RepeatingDouble" start="0" end="7" value="0.01"/>
+      <MutationProbability type="RepeatingDouble" start="0" end="0" value="0.1"/>
+      <Deviations type="RepeatingDouble" start="0" end="7" value="0.1"/>
      </GaussianMutator>
     </VectorMutator>
    </VectorMutationPipeline>
@@ -33,7 +33,7 @@
   <Parameter name="demandConstant" value="100"/> <!-- 1 for testing -->
   <Parameter name="demandCoefficient" value="1"/> <!-- 1 for testing -->
   <Parameter name="minimumQuantity" value="0.00001"/> <!-- 1 for testing -->
-  <Parameter name="maxSteps" value="10"/> <!-- 10 for testing -->
+  <Parameter name="maxSteps" value="120"/> <!-- 10 for testing -->
 
  </DefaultAgentModelFactory>
 
@@ -41,9 +41,9 @@
  <DefaultEnvironmentStatistics file="DefaultEnvironmentStatistics.csv" format="csv"/>
 
  <!-- Need an Evaluator -->
- <LocalEvaluator/>
- <!-- <LocalParallelEvaluator/>
- -->
+ <!-- <LocalEvaluator/> -->
+ <LocalParallelEvaluator/>
+
  <!-- Simulation data output -->
  <DefaultModelSummaryData generations="5" file="summary.csv" format="csv"/>
 
